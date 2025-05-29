@@ -1,6 +1,7 @@
 import React from 'react';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'; // Reverted
-import { createNativeStackNavigator, NativeStackNavigationOptions } from '@react-navigation/native-stack'; // Keep NativeStackNavigationOptions if used, else remove
+// import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'; // Changed
+import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs'; // Added
+import { createNativeStackNavigator, NativeStackNavigationOptions } from '@react-navigation/native-stack';
 import { ROUTES } from '@/constants/routes';
 import DashboardScreen from '@/screens/app/DashboardScreen';
 import ReportsScreen from '@/screens/app/ReportsScreen';
@@ -23,7 +24,9 @@ import { ClientDetailScreen } from '@/screens/app/clients/ClientDetailScreen';
 import { ClientFormScreen } from '@/screens/app/clients/ClientFormScreen';
 import { NavigatorScreenParams } from '@react-navigation/native';
 
-// Reverted: Removed defaultStackScreenOptions as stacks will manage their own headers again if needed, or use AppTabs screenOptions.
+const defaultStackScreenOptions: NativeStackNavigationOptions = {
+  headerShown: false,
+};
 
 // Define ParamList for each stack within the tabs
 export type InventoryStackParamList = {
@@ -33,11 +36,10 @@ export type InventoryStackParamList = {
 };
 const InventoryStack = createNativeStackNavigator<InventoryStackParamList>();
 const InventoryStackNavigator = () => (
-  // Restore individual header options if they were there, or let Tab.Navigator handle it.
-  <InventoryStack.Navigator screenOptions={{ headerShown: true, headerTitle: 'Inventory' }}>
-    <InventoryStack.Screen name={ROUTES.INVENTORY_LIST} component={InventoryListScreen} options={{ headerTitle: 'Inventory Items'}} />
-    <InventoryStack.Screen name={ROUTES.INVENTORY_FORM} component={InventoryFormScreen} options={({ route }) => ({ headerTitle: route.params?.itemId ? 'Edit Item' : 'Add Item' })} />
-    <InventoryStack.Screen name={ROUTES.INVENTORY_DETAIL} component={InventoryDetailScreen} options={{ headerTitle: 'Item Details'}}/>
+  <InventoryStack.Navigator screenOptions={defaultStackScreenOptions}>
+    <InventoryStack.Screen name={ROUTES.INVENTORY_LIST} component={InventoryListScreen} />
+    <InventoryStack.Screen name={ROUTES.INVENTORY_FORM} component={InventoryFormScreen} />
+    <InventoryStack.Screen name={ROUTES.INVENTORY_DETAIL} component={InventoryDetailScreen} />
   </InventoryStack.Navigator>
 );
 
@@ -48,10 +50,10 @@ export type InvoiceStackParamList = {
 };
 const InvoiceStack = createNativeStackNavigator<InvoiceStackParamList>();
 const InvoiceStackNavigator = () => (
-  <InvoiceStack.Navigator screenOptions={{ headerShown: true, headerTitle: 'Invoices' }}>
-    <InvoiceStack.Screen name={ROUTES.INVOICE_LIST} component={InvoiceListScreen} options={{ headerTitle: 'All Invoices'}} />
-    <InvoiceStack.Screen name={ROUTES.INVOICE_FORM} component={InvoiceFormScreen} options={({ route }) => ({ headerTitle: route.params?.invoiceId ? 'Edit Invoice' : 'New Invoice' })} />
-    <InvoiceStack.Screen name={ROUTES.INVOICE_DETAIL} component={InvoiceDetailScreen} options={{ headerTitle: 'Invoice Details'}} />
+  <InvoiceStack.Navigator screenOptions={defaultStackScreenOptions}>
+    <InvoiceStack.Screen name={ROUTES.INVOICE_LIST} component={InvoiceListScreen} />
+    <InvoiceStack.Screen name={ROUTES.INVOICE_FORM} component={InvoiceFormScreen} />
+    <InvoiceStack.Screen name={ROUTES.INVOICE_DETAIL} component={InvoiceDetailScreen} />
   </InvoiceStack.Navigator>
 );
 
@@ -62,10 +64,10 @@ export type ExpenseStackParamList = {
 };
 const ExpenseStack = createNativeStackNavigator<ExpenseStackParamList>();
 const ExpenseStackNavigator = () => (
-  <ExpenseStack.Navigator screenOptions={{ headerShown: true, headerTitle: 'Expenses' }}>
-    <ExpenseStack.Screen name={ROUTES.EXPENSE_LIST} component={ExpenseListScreen} options={{ headerTitle: 'All Expenses'}} />
-    <ExpenseStack.Screen name={ROUTES.EXPENSE_FORM} component={ExpenseFormScreen} options={({ route }) => ({ headerTitle: route.params?.expenseId ? 'Edit Expense' : 'New Expense' })} />
-    <ExpenseStack.Screen name={ROUTES.EXPENSE_DETAIL} component={ExpenseDetailScreen} options={{ headerTitle: 'Expense Details'}} />
+  <ExpenseStack.Navigator screenOptions={defaultStackScreenOptions}>
+    <ExpenseStack.Screen name={ROUTES.EXPENSE_LIST} component={ExpenseListScreen} />
+    <ExpenseStack.Screen name={ROUTES.EXPENSE_FORM} component={ExpenseFormScreen} />
+    <ExpenseStack.Screen name={ROUTES.EXPENSE_DETAIL} component={ExpenseDetailScreen} />
   </ExpenseStack.Navigator>
 );
 
@@ -75,15 +77,15 @@ export type SettingsStackParamList = {
 };
 const SettingsNavigatorStack = createNativeStackNavigator<SettingsStackParamList>();
 const SettingsStackNavigator = () => (
-    <SettingsNavigatorStack.Navigator screenOptions={{ headerShown: true, headerTitle: 'Settings' }}>
+    <SettingsNavigatorStack.Navigator screenOptions={defaultStackScreenOptions}>
         <SettingsNavigatorStack.Screen name={ROUTES.SETTINGS} component={SettingsScreen} />
-        <SettingsNavigatorStack.Screen name={ROUTES.PROFILE} component={ProfileScreen} options={{ headerTitle: 'My Profile'}}/>
+        <SettingsNavigatorStack.Screen name={ROUTES.PROFILE} component={ProfileScreen} />
     </SettingsNavigatorStack.Navigator>
 );
 
 const ClientStack = createNativeStackNavigator<ClientStackParamList>();
 const ClientStackNavigator = () => (
-  <ClientStack.Navigator screenOptions={{ headerShown: false }}>
+  <ClientStack.Navigator screenOptions={defaultStackScreenOptions}>
     <ClientStack.Screen name={ROUTES.CLIENT_LIST} component={ClientListScreen} />
     <ClientStack.Screen name={ROUTES.CLIENT_DETAIL} component={ClientDetailScreen} />
     <ClientStack.Screen name={ROUTES.CLIENT_FORM} component={ClientFormScreen} />
@@ -100,61 +102,40 @@ export type AppTabParamList = {
   [ROUTES.SETTINGS_STACK]: NavigatorScreenParams<SettingsStackParamList>;
 };
 
-const Tab = createBottomTabNavigator<AppTabParamList>(); // Reverted
+// const Tab = createBottomTabNavigator<AppTabParamList>(); // Changed
+const Tab = createMaterialTopTabNavigator<AppTabParamList>(); // Added
 
 const AppTabs = () => {
   return (
     <Tab.Navigator
-      screenOptions={({ route }) => ({
-        headerShown: false, // Stacks will manage their own headers or use screen-specific options
+      screenOptions={{
         tabBarActiveTintColor: colors.primary || '#007AFF',
         tabBarInactiveTintColor: colors.gray || '#8E8E93',
         tabBarStyle: { backgroundColor: colors.white || '#FFFFFF' },
-        tabBarIcon: ({ focused, color, size }) => {
-          let iconName: keyof typeof Ionicons.glyphMap = 'alert-circle'; 
-
-          if (route.name === ROUTES.DASHBOARD) {
-            iconName = focused ? 'home' : 'home-outline';
-          } else if (route.name === ROUTES.INVENTORY_STACK) {
-            iconName = focused ? 'cube' : 'cube-outline';
-          } else if (route.name === ROUTES.INVOICES_STACK) {
-            iconName = focused ? 'document-text' : 'document-text-outline';
-          } else if (route.name === ROUTES.EXPENSES_STACK) {
-            iconName = focused ? 'wallet' : 'wallet-outline';
-          } else if (route.name === ROUTES.REPORTS) {
-            iconName = focused ? 'analytics' : 'analytics-outline';
-          } else if (route.name === ROUTES.SETTINGS_STACK) {
-            iconName = focused ? 'settings' : 'settings-outline';
-          } else if (route.name === ROUTES.CLIENTS_STACK) {
-            iconName = focused ? 'people' : 'people-outline';
-          }
-          return <Ionicons name={iconName} size={size} color={color} />;
-        },
-      })}
+        tabBarScrollEnabled: false, // Changed to false to prevent scrolling
+        tabBarIndicatorStyle: { backgroundColor: colors.primary || '#007AFF' },
+        tabBarItemStyle: { flex: 1 }, // Changed from width: 'auto' to flex: 1
+        tabBarLabelStyle: { fontSize: 10, textTransform: 'none', textAlign: 'center' }, // Added textAlign: center
+        // The following might help with centering if items don't fill width
+        // but MaterialTopTabNavigator might handle distribution automatically when scroll is off.
+        // tabBarContentContainerStyle: { alignItems: 'center', justifyContent: 'center' } 
+      }}
     >
-      <Tab.Screen name={ROUTES.DASHBOARD} component={DashboardScreen} options={{ headerTitle: 'Dashboard', headerShown: true }} />
-      <Tab.Screen name={ROUTES.INVENTORY_STACK} component={InventoryStackNavigator} options={{ title: 'Inventory' }} />
-      <Tab.Screen name={ROUTES.INVOICES_STACK} component={InvoiceStackNavigator} options={{ title: 'Invoices' }} />
+      <Tab.Screen name={ROUTES.DASHBOARD} component={DashboardScreen} options={{ tabBarLabel: 'Dashboard' }} />
+      <Tab.Screen name={ROUTES.INVENTORY_STACK} component={InventoryStackNavigator} options={{ tabBarLabel: 'Inventory' }} />
+      <Tab.Screen name={ROUTES.INVOICES_STACK} component={InvoiceStackNavigator} options={{ tabBarLabel: 'Invoices' }} />
       <Tab.Screen
         name={ROUTES.EXPENSES_STACK}
         component={ExpenseStackNavigator}
-        options={{
-          tabBarLabel: 'Expenses',
-          // Restore icon if it was specifically set here before for bottom tabs
-          // tabBarIcon: ({ color, size }) => <Ionicons name="cash-outline" color={color} size={size} />,
-        }}
+        options={{ tabBarLabel: 'Expenses' }}
       />
       <Tab.Screen
         name={ROUTES.CLIENTS_STACK}
         component={ClientStackNavigator}
-        options={{
-          tabBarLabel: 'Clients',
-          // Restore icon if it was specifically set here before for bottom tabs
-          // tabBarIcon: ({ color, size }) => <Ionicons name="people-outline" color={color} size={size} />,
-        }}
+        options={{ tabBarLabel: 'Clients' }}
       />
-      <Tab.Screen name={ROUTES.REPORTS} component={ReportsScreen} options={{ headerTitle: 'Reports', headerShown: true }} />
-      <Tab.Screen name={ROUTES.SETTINGS_STACK} component={SettingsStackNavigator} options={{ title: 'Settings' }} />
+      <Tab.Screen name={ROUTES.REPORTS} component={ReportsScreen} options={{ tabBarLabel: 'Reports' }} />
+      <Tab.Screen name={ROUTES.SETTINGS_STACK} component={SettingsStackNavigator} options={{ tabBarLabel: 'Settings' }} />
     </Tab.Navigator>
   );
 };
