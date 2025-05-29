@@ -1,0 +1,39 @@
+# Expo
+.expo/
+
+# Node
+node_modules/
+
+# IDE files
+.idea/
+.vscode/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Build artifacts
+dist/
+web-build/
+
+# Cache files
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Misc
+.DS_Store
+coverage/
+.nyc_output/
+
+# EAS Build
+.eas/
