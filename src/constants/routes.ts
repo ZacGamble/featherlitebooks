@@ -41,4 +41,4 @@ export const ROUTES = {
   SETTINGS: 'Settings',
   PROFILE: 'Profile',
   // Add other settings screens like Account, Notifications etc.
-}; 
+} as const; 

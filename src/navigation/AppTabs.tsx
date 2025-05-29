@@ -1,6 +1,6 @@
 import React from 'react';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'; // Reverted
+import { createNativeStackNavigator, NativeStackNavigationOptions } from '@react-navigation/native-stack'; // Keep NativeStackNavigationOptions if used, else remove
 import { ROUTES } from '@/constants/routes';
 import DashboardScreen from '@/screens/app/DashboardScreen';
 import ReportsScreen from '@/screens/app/ReportsScreen';
@@ -16,20 +16,24 @@ import ExpenseListScreen from '@/screens/app/expenses/ExpenseListScreen';
 import ExpenseDetailScreen from '@/screens/app/expenses/ExpenseDetailScreen';
 import ExpenseFormScreen from '@/screens/app/expenses/ExpenseFormScreen';
 
-import { Ionicons } from '@expo/vector-icons'; // Example, choose your icon library
-import { colors } from '@/constants/colors'; // Assuming you have a colors constant file
-import { ClientListScreen, ClientStackParamList } from '@/screens/app/clients/ClientListScreen'; // Import ClientStackParamList from ClientListScreen
-import { ClientDetailScreen } from '@/screens/app/clients/ClientDetailScreen'; // Corrected import
-import { ClientFormScreen } from '@/screens/app/clients/ClientFormScreen'; // Corrected import
+import { Ionicons } from '@expo/vector-icons';
+import { colors } from '@/constants/colors';
+import { ClientListScreen, ClientStackParamList } from '@/screens/app/clients/ClientListScreen';
+import { ClientDetailScreen } from '@/screens/app/clients/ClientDetailScreen';
+import { ClientFormScreen } from '@/screens/app/clients/ClientFormScreen';
+import { NavigatorScreenParams } from '@react-navigation/native';
+
+// Reverted: Removed defaultStackScreenOptions as stacks will manage their own headers again if needed, or use AppTabs screenOptions.
 
 // Define ParamList for each stack within the tabs
 export type InventoryStackParamList = {
   [ROUTES.INVENTORY_LIST]: undefined;
-  [ROUTES.INVENTORY_FORM]: { itemId?: string }; // itemId is optional for edit, undefined for add
+  [ROUTES.INVENTORY_FORM]: { itemId?: string };
   [ROUTES.INVENTORY_DETAIL]: { itemId: string };
 };
 const InventoryStack = createNativeStackNavigator<InventoryStackParamList>();
 const InventoryStackNavigator = () => (
+  // Restore individual header options if they were there, or let Tab.Navigator handle it.
   <InventoryStack.Navigator screenOptions={{ headerShown: true, headerTitle: 'Inventory' }}>
     <InventoryStack.Screen name={ROUTES.INVENTORY_LIST} component={InventoryListScreen} options={{ headerTitle: 'Inventory Items'}} />
     <InventoryStack.Screen name={ROUTES.INVENTORY_FORM} component={InventoryFormScreen} options={({ route }) => ({ headerTitle: route.params?.itemId ? 'Edit Item' : 'Add Item' })} />
@@ -77,7 +81,6 @@ const SettingsStackNavigator = () => (
     </SettingsNavigatorStack.Navigator>
 );
 
-// Client Stack Navigator (New)
 const ClientStack = createNativeStackNavigator<ClientStackParamList>();
 const ClientStackNavigator = () => (
   <ClientStack.Navigator screenOptions={{ headerShown: false }}>
@@ -92,24 +95,23 @@ export type AppTabParamList = {
   [ROUTES.INVENTORY_STACK]: NavigatorScreenParams<InventoryStackParamList>;
   [ROUTES.INVOICES_STACK]: NavigatorScreenParams<InvoiceStackParamList>;
   [ROUTES.EXPENSES_STACK]: NavigatorScreenParams<ExpenseStackParamList>;
-  [ROUTES.CLIENTS_STACK]: NavigatorScreenParams<ClientStackParamList>; // Added Clients stack
+  [ROUTES.CLIENTS_STACK]: NavigatorScreenParams<ClientStackParamList>;
   [ROUTES.REPORTS]: undefined;
   [ROUTES.SETTINGS_STACK]: NavigatorScreenParams<SettingsStackParamList>;
 };
 
-const Tab = createBottomTabNavigator<AppTabParamList>();
+const Tab = createBottomTabNavigator<AppTabParamList>(); // Reverted
 
 const AppTabs = () => {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        // Setting headerShown to false on Tab.Navigator means stacks will manage their own headers.
-        headerShown: false, 
-        tabBarActiveTintColor: colors.primary || '#007AFF', // Fallback color
-        tabBarInactiveTintColor: colors.gray || '#8E8E93', // Fallback color
-        tabBarStyle: { backgroundColor: colors.white || '#FFFFFF' }, // Optional: customize tab bar bg
+        headerShown: false, // Stacks will manage their own headers or use screen-specific options
+        tabBarActiveTintColor: colors.primary || '#007AFF',
+        tabBarInactiveTintColor: colors.gray || '#8E8E93',
+        tabBarStyle: { backgroundColor: colors.white || '#FFFFFF' },
         tabBarIcon: ({ focused, color, size }) => {
-          let iconName: keyof typeof Ionicons.glyphMap = 'alert-circle'; // Default icon
+          let iconName: keyof typeof Ionicons.glyphMap = 'alert-circle'; 
 
           if (route.name === ROUTES.DASHBOARD) {
             iconName = focused ? 'home' : 'home-outline';
@@ -138,7 +140,8 @@ const AppTabs = () => {
         component={ExpenseStackNavigator}
         options={{
           tabBarLabel: 'Expenses',
-          tabBarIcon: ({ color, size }) => <Ionicons name="cash-outline" color={color} size={size} />,
+          // Restore icon if it was specifically set here before for bottom tabs
+          // tabBarIcon: ({ color, size }) => <Ionicons name="cash-outline" color={color} size={size} />,
         }}
       />
       <Tab.Screen
@@ -146,7 +149,8 @@ const AppTabs = () => {
         component={ClientStackNavigator}
         options={{
           tabBarLabel: 'Clients',
-          tabBarIcon: ({ color, size }) => <Ionicons name="people-outline" color={color} size={size} />,
+          // Restore icon if it was specifically set here before for bottom tabs
+          // tabBarIcon: ({ color, size }) => <Ionicons name="people-outline" color={color} size={size} />,
         }}
       />
       <Tab.Screen name={ROUTES.REPORTS} component={ReportsScreen} options={{ headerTitle: 'Reports', headerShown: true }} />
