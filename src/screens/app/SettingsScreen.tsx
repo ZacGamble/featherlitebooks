@@ -34,11 +34,11 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) =>
       // route: ROUTES.NOTIFICATION_SETTINGS,
       action: () => console.log('Navigate to Notification Settings'),
     },
-    {
-      title: 'Data & Sync',
-      icon: 'cloud-sync-outline' as const,
-      action: () => console.log('Navigate to Data & Sync Settings'),
-    },
+    // {
+    //   title: 'Data & Sync',
+    //   icon: 'cloud-sync' as const,
+    //   action: () => console.log('Navigate to Data & Sync Settings'),
+    // },
     {
       title: 'About FeatherLiteBooks',
       icon: 'information-circle-outline' as const,

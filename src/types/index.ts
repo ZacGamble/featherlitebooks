@@ -10,6 +10,8 @@ export interface Profile {
   full_name?: string | null; // TEXT, Nullable
   avatar_url?: string | null; // TEXT, Nullable
   website?: string | null; // TEXT, Nullable
+  business_name?: string | null; // Added from screenshot
+  default_currency?: string | null; // Added from screenshot (corrected name)
   created_at: string; // TIMESTAMPTZ
   updated_at: string; // TIMESTAMPTZ
 }

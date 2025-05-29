@@ -79,31 +79,52 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (user) {
         try {
           setLoading(true);
-          setError(null); // Clear previous profile errors
+          setError(null);
+          const profileFieldsToSelect = 'id, username, full_name, avatar_url, website, business_name, default_currency, created_at, updated_at';
           const { data, error: profileError, status } = await supabase
             .from('profiles')
-            .select('username, full_name, avatar_url, website')
+            .select(profileFieldsToSelect)
             .eq('id', user.id)
             .single();
 
-          if (profileError && status !== 406) { // 406: No rows found (profile might not exist yet)
+          if (profileError && status !== 406) {
             throw profileError;
           }
 
           if (data) {
-            setProfile({ id: user.id, ...data });
-          } else {
-            setProfile(null); // Explicitly set to null if no data but no error (e.g. profile not created yet)
+            setProfile(data as UserProfile);
+          } else if (status === 406) {
+            console.log('No profile found for user, attempting to create one...');
+            const defaultUsername = user.email?.split('@')[0] || `user-${user.id.substring(0, 8)}`;
+            const newProfileData = {
+              id: user.id,
+              username: defaultUsername,
+            };
+
+            const { data: createdProfile, error: createError } = await supabase
+              .from('profiles')
+              .insert(newProfileData)
+              .select(profileFieldsToSelect)
+              .single();
+
+            if (createError) {
+              console.error('Error creating profile:', createError.message);
+              setProfile(null);
+            } else if (createdProfile) {
+              console.log('Profile created successfully:', createdProfile);
+              setProfile(createdProfile as UserProfile);
+            } else {
+              setProfile(null);
+            }
           }
         } catch (profileErr) {
-          console.error('Error fetching user profile:', (profileErr as AuthError).message);
-          // Optionally set a specific profile error state instead of the global auth error
-          // setError(profileErr as AuthError); 
+          console.error('Error fetching/creating user profile:', (profileErr as AuthError).message);
+          setProfile(null);
         } finally {
           setLoading(false);
         }
       } else {
-        setProfile(null); // Clear profile if no user
+        setProfile(null);
       }
     };
 
