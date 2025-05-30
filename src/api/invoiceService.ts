@@ -33,7 +33,7 @@ export const getInvoiceById = async (invoiceId: string): Promise<{ data: Invoice
     .select(`
       *,
       client:clients (*),
-      invoice_line_items (*)
+      line_items:invoice_line_items (*)
     `)
     .eq('id', invoiceId)
     .single();
@@ -112,7 +112,7 @@ export const updateInvoice = async (
     .select(`
       *,
       client:clients (*),
-      invoice_line_items (*)
+      line_items:invoice_line_items (*)
     `)
     .single();
 };

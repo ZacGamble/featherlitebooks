@@ -1,162 +1,242 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert, FlatList } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity, Alert, FlatList } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useFocusEffect } from '@react-navigation/native';
 import ScreenContainer from '@/components/layout/ScreenContainer';
 import Button from '@/components/common/Button/Button';
-import Card from '@/components/common/Card/Card';
-import { InvoiceStackParamList } from '@/navigation/AppTabs';
+import { InvoiceStackParamList } from '@/navigation/InvoiceStack';
 import { ROUTES } from '@/constants/routes';
 import { Invoice, InvoiceLineItem, Client } from '@/types';
-import { useSupabase } from '@/hooks/useSupabase';
 import { colors } from '@/constants/colors';
+import * as invoiceService from '@/api/invoiceService';
+import { Ionicons } from '@expo/vector-icons';
+import { format, parseISO } from 'date-fns';
 
-type InvoiceDetailScreenProps = NativeStackScreenProps<InvoiceStackParamList, typeof ROUTES.INVOICE_DETAIL>;
+type Props = NativeStackScreenProps<InvoiceStackParamList, typeof ROUTES.INVOICE_DETAIL>;
 
-// Mock client data for detail view
-const MOCK_CLIENT_DETAIL: Client = { id: '1', name: 'Client Alpha Deluxe', email: 'alpha@example.com', phone: '555-1234', user_id: '1', created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+// Sub-component for displaying individual detail items
+interface DetailDisplayItemProps {
+  label: string;
+  value?: string | null | number;
+  iconName?: keyof typeof Ionicons.glyphMap;
+  isCurrency?: boolean;
+}
 
-// Helper function for status color
-const getStatusColor = (status: Invoice['status']) => {
-  if (status === 'paid') return colors.success;
-  if (status === 'overdue') return colors.error; // Assuming 'overdue' is a possible status
-  return colors.textSecondary;
-};
-
-export const InvoiceDetailScreen: React.FC<InvoiceDetailScreenProps> = ({ navigation, route }) => {
-  const { invoiceId } = route.params;
-  const [invoice, setInvoice] = useState<Invoice | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const supabase = useSupabase();
-
-  useEffect(() => {
-    fetchInvoiceDetails();
-  }, [invoiceId]);
-
-  const fetchInvoiceDetails = async () => {
-    setLoading(true);
-    setError(null);
-    // Mock fetch, join with client for display
-    const MOCK_DETAIL_INVOICE: Invoice = {
-      id: invoiceId,
-      user_id: '1',
-      currency: 'USD',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      invoice_number: `INV-2024-${invoiceId.padStart(3, '0')}`,
-      client_id: '1',
-      client: MOCK_CLIENT_DETAIL,
-      issue_date: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
-      due_date: new Date(Date.now() + Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
-      line_items: [
-        { id: 'li_detail_1', description: 'Detailed Service A', quantity: 2, unit_price: 75, total_price: 150, invoice_id: invoiceId, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-        { id: 'li_detail_2', description: 'Product B (Detailed)', quantity: 1, unit_price: 120, total_price: 120, invoice_id: invoiceId, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-      ],
-      subtotal: 270,
-      tax_amount: 27, // Example tax
-      total_amount: 297,
-      status: Math.random() > 0.5 ? 'paid' : 'sent',
-      notes: 'This is a detailed mock invoice with some notes for display purposes.',
-    };
-    setInvoice(MOCK_DETAIL_INVOICE);
-    setLoading(false);
-  };
-
-  const handleDelete = () => {
-    Alert.alert('Confirm Delete', 'Are you sure you want to delete this invoice?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', onPress: () => { /* Mock delete */ navigation.goBack(); }, style: 'destructive' },
-    ]);
-  };
-  
-  const handleMarkAsPaid = () => {
-    Alert.alert('Mark as Paid', 'Mark this invoice as paid?', [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Mark Paid', onPress: () => { 
-            setInvoice(prev => prev ? ({...prev, status: 'paid'}) : null);
-            Alert.alert('Success', 'Invoice marked as paid.');
-         } },
-      ]);
-  };
-
-  if (loading && !invoice) {
-    return <ScreenContainer><Text style={styles.messageText}>Loading invoice details...</Text></ScreenContainer>;
-  }
-  if (error) {
-    return <ScreenContainer><Text style={styles.messageText}>Error: {error}</Text></ScreenContainer>;
-  }
-  if (!invoice) {
-    return <ScreenContainer><Text style={styles.messageText}>Invoice not found.</Text></ScreenContainer>;
-  }
-
-  const renderLineItem = ({ item }: { item: InvoiceLineItem }) => (
-    <View style={styles.lineItemRow}>
-      <Text style={styles.lineItemDescription}>{item.description}</Text>
-      <Text style={styles.lineItemQty}>{item.quantity}</Text>
-      <Text style={styles.lineItemPrice}>${item.unit_price.toFixed(2)}</Text>
-      <Text style={styles.lineItemTotal}>${item.total_price.toFixed(2)}</Text>
+const DetailDisplayItem: React.FC<DetailDisplayItemProps> = ({ label, value, iconName, isCurrency }) => {
+  if (value === null || value === undefined || value === '') return null;
+  const displayValue = isCurrency && typeof value === 'number' ? `$${value.toFixed(2)}` : value.toString();
+  return (
+    <View style={styles.detailItemContainer}>
+      {iconName && <Ionicons name={iconName} size={20} color={colors.primary} style={styles.detailIcon} />}
+      <View style={styles.detailTextContainer}>
+        <Text style={styles.detailLabel}>{label}</Text>
+        <Text style={styles.detailValue} selectable>{displayValue}</Text>
+      </View>
     </View>
   );
+};
+
+export const InvoiceDetailScreen: React.FC<Props> = ({ navigation, route }) => {
+  const { invoiceId } = route.params;
+  const [invoice, setInvoice] = useState<Invoice | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchInvoiceDetails = useCallback(async () => {
+    if (!invoiceId) {
+      setError('Invoice ID is missing.');
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    setActionLoading(false);
+    setError(null);
+    try {
+      const { data, error: fetchError } = await invoiceService.getInvoiceById(invoiceId);
+      if (fetchError) {
+        setError(fetchError.message);
+      } else if (data) {
+        setInvoice(data);
+      } else {
+        setError('Invoice not found.');
+      }
+    } catch (e) {
+      const err = e as Error;
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [invoiceId]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchInvoiceDetails();
+      return () => {}; // Adding a return statement for cleanup (even if empty)
+    }, [fetchInvoiceDetails])
+  );
+
+  const handleEdit = () => {
+    if (invoice) {
+      navigation.navigate(ROUTES.INVOICE_FORM, { invoiceId: invoice.id });
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!invoice) return;
+    const confirmed = window.confirm(`Are you sure you want to delete Invoice #${invoice.invoice_number}? This action cannot be undone.`);
+    if (confirmed) {
+      setActionLoading(true);
+      try {
+        const { error: deleteError } = await invoiceService.deleteInvoice(invoice.id);
+        if (deleteError) {
+          setError(deleteError.message);
+          window.alert(`Delete Error: ${deleteError.message}`);
+        } else {
+          window.alert(`Invoice #${invoice.invoice_number} deleted successfully.`);
+          navigation.goBack();
+        }
+      } catch (e) {
+        const err = e as Error;
+        setError(err.message);
+        window.alert(`Delete Error: An unexpected error occurred: ${err.message}`);
+      } finally {
+        setActionLoading(false);
+      }
+    }
+  };
+
+  if (loading) {
+    return (
+      <ScreenContainer style={styles.centerAlign}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={styles.messageText}>Loading invoice details...</Text>
+      </ScreenContainer>
+    );
+  }
+
+  if (error && !invoice) {
+    return (
+      <ScreenContainer style={styles.centerAlign}>
+        <Ionicons name="alert-circle-outline" size={48} color={colors.error} />
+        <Text style={styles.errorMessageText}>{error}</Text>
+        <Button title="Retry" onPress={fetchInvoiceDetails} style={{marginTop: 10}} />
+        <Button title="Go Back" onPress={() => navigation.goBack()} variant="outline" style={{marginTop: 10}} />
+      </ScreenContainer>
+    );
+  }
+
+  if (!invoice) {
+    return (
+      <ScreenContainer style={styles.centerAlign}>
+        <Ionicons name="document-text-outline" size={48} color={colors.textSecondary} />
+        <Text style={styles.messageText}>Invoice not found.</Text>
+        <Button title="Go Back" onPress={() => navigation.goBack()} />
+      </ScreenContainer>
+    );
+  }
+
+  const { client, line_items = [] } = invoice;
+  const discountDisplay = invoice.discount_amount ?? 0;
+  const taxDisplay = invoice.tax_amount ?? 0;
 
   return (
     <ScreenContainer scrollable>
+      <View style={styles.topBarContainer}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Ionicons name="arrow-back-outline" size={28} color={colors.primary} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Invoice Details</Text>
+      </View>
+      
       <ScrollView contentContainerStyle={styles.container}>
-        <Card style={styles.headerCard}>
-          <Text style={styles.invoiceNumber}>Invoice {invoice.invoice_number}</Text>
-          <Text style={[styles.statusTextBase, { color: getStatusColor(invoice.status) }]}>STATUS: {invoice.status.toUpperCase()}</Text>
-          {invoice.client && (
-            <View style={styles.clientInfoContainer}>
-              <Text style={styles.clientName}>{invoice.client.name}</Text>
-              {invoice.client.email && <Text style={styles.clientContact}>{invoice.client.email}</Text>}
-              {invoice.client.phone && <Text style={styles.clientContact}>{invoice.client.phone}</Text>}
+        <View style={styles.headerSection}>
+          <Ionicons name="document-text-outline" size={60} color={colors.primary} />
+          <Text style={styles.invoiceNumber}>Invoice #{invoice.invoice_number}</Text>
+          <Text style={styles.invoiceStatus}>{invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}</Text>
+        </View>
+
+        {error && <Text style={[styles.messageText, styles.inlineError]}>{error}</Text>}
+
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Client Information</Text>
+          {client ? (
+            <>
+              <DetailDisplayItem label="Client Name" value={client.name} iconName="person-outline" />
+              <DetailDisplayItem label="Email" value={client.email} iconName="mail-outline" />
+              <DetailDisplayItem label="Phone" value={client.phone} iconName="call-outline" />
+              <DetailDisplayItem label="Address" value={`${client.address_line1 || ''}${client.address_line2 ? ', ' + client.address_line2 : ''}, ${client.city || ''}, ${client.state_province || ''} ${client.postal_code || ''}`} iconName="location-outline" />
+            </>
+          ) : <Text style={styles.infoText}>Client details not available.</Text>}
+        </View>
+
+        <View style={styles.card}>
+            <Text style={styles.cardTitle}>Invoice Dates & Terms</Text>
+            <DetailDisplayItem label="Invoice Date" value={format(parseISO(invoice.invoice_date), 'MMM dd, yyyy')} iconName="calendar-outline" />
+            <DetailDisplayItem label="Due Date" value={format(parseISO(invoice.due_date), 'MMM dd, yyyy')} iconName="time-outline" />
+            {invoice.category && <DetailDisplayItem label="Category" value={invoice.category} iconName="pricetag-outline" />}
+            {invoice.payment_terms && <DetailDisplayItem label="Payment Terms" value={invoice.payment_terms} iconName="reader-outline" />}
+        </View>
+
+        <View style={styles.card}>
+            <Text style={styles.cardTitle}>Line Items</Text>
+            {line_items.length > 0 ? (
+                <FlatList
+                    data={line_items}
+                    keyExtractor={(item) => item.id.toString()}
+                    renderItem={({ item }) => (
+                        <View style={styles.lineItemContainer}>
+                            <Text style={styles.lineItemDescription}>{item.description}</Text>
+                            <Text style={styles.lineItemDetails}>Qty: {item.quantity} @ ${item.unit_price.toFixed(2)}</Text>
+                            <Text style={styles.lineItemTotal}>Line Total: ${item.line_total.toFixed(2)}</Text>
+                        </View>
+                    )}
+                    scrollEnabled={false}
+                />
+            ) : (
+                <Text style={styles.infoText}>No line items for this invoice.</Text>
+            )}
+        </View>
+
+        <View style={styles.card}>
+            <Text style={styles.cardTitle}>Summary</Text>
+            <DetailDisplayItem label="Subtotal" value={invoice.subtotal} iconName="calculator-outline" isCurrency />
+            {discountDisplay > 0 && 
+              <DetailDisplayItem label="Discount" value={discountDisplay} iconName="remove-circle-outline" isCurrency />}
+            {taxDisplay > 0 && 
+              <DetailDisplayItem label="Tax" value={taxDisplay} iconName="receipt-outline" isCurrency />}
+            <View style={[styles.detailItemContainer, styles.totalRow]}>
+                <Ionicons name="cash-outline" size={20} color={colors.primary} style={styles.detailIcon} />
+                <View style={styles.detailTextContainer}>
+                    <Text style={[styles.detailLabel, styles.totalLabel]}>Total Amount</Text>
+                    <Text style={[styles.detailValue, styles.totalValue]} selectable>${invoice.total_amount.toFixed(2)}</Text>
+                </View>
             </View>
-          )}
-          <View style={styles.dateRow}>
-            <Text style={styles.dateLabel}>Date Issued:</Text>
-            <Text style={styles.dateValue}>{new Date(invoice.issue_date).toLocaleDateString()}</Text>
-          </View>
-          <View style={styles.dateRow}>
-            <Text style={styles.dateLabel}>Due Date:</Text>
-            <Text style={styles.dateValue}>{new Date(invoice.due_date).toLocaleDateString()}</Text>
-          </View>
-        </Card>
-
-        <Card style={styles.itemsCard}>
-          <Text style={styles.sectionTitle}>Line Items</Text>
-          <View style={styles.lineItemHeaderRow}>
-            <Text style={[styles.lineItemHeaderText, styles.lineItemDescription]}>Description</Text>
-            <Text style={[styles.lineItemHeaderText, styles.lineItemQty]}>Qty</Text>
-            <Text style={[styles.lineItemHeaderText, styles.lineItemPrice]}>Price</Text>
-            <Text style={[styles.lineItemHeaderText, styles.lineItemTotal]}>Total</Text>
-          </View>
-          <FlatList
-            data={invoice.line_items}
-            renderItem={renderLineItem}
-            keyExtractor={(item) => item.id}
-            scrollEnabled={false} // If inside ScrollView, disable this FlatList's scroll
-          />
-        </Card>
-
-        <Card style={styles.summaryCard}>
-          <Text style={styles.sectionTitle}>Summary</Text>
-          <View style={styles.summaryRow}><Text>Subtotal:</Text><Text>${invoice.subtotal.toFixed(2)}</Text></View>
-          {invoice.tax_amount && <View style={styles.summaryRow}><Text>Tax:</Text><Text>${invoice.tax_amount.toFixed(2)}</Text></View>}
-          <View style={[styles.summaryRow, styles.totalRow]}><Text style={styles.totalText}>Total Amount:</Text><Text style={styles.totalText}>${invoice.total_amount.toFixed(2)}</Text></View>
-        </Card>
-
+        </View>
+        
         {invoice.notes && (
-          <Card style={styles.notesCard}>
-            <Text style={styles.sectionTitle}>Notes</Text>
-            <Text>{invoice.notes}</Text>
-          </Card>
+            <View style={styles.card}>
+                <Text style={styles.cardTitle}>Notes</Text>
+                <Text style={styles.notesText}>{invoice.notes}</Text>
+            </View>
         )}
 
         <View style={styles.actionsContainer}>
-          <Button title="Edit Invoice" onPress={() => navigation.navigate(ROUTES.INVOICE_FORM, { invoiceId: invoice.id })} style={styles.actionButton}/>
-          {invoice.status !== 'paid' && <Button title="Mark as Paid" onPress={handleMarkAsPaid} variant='secondary' style={styles.actionButton}/>}
-          <Button title="Delete Invoice" onPress={handleDelete} variant="danger" style={styles.actionButton}/>
-          {/* Add Send Email / Download PDF buttons here */}
+          <Button 
+            title="Edit Invoice" 
+            onPress={handleEdit} 
+            style={styles.actionButton} 
+            iconLeft={<Ionicons name="pencil-outline" size={18} color={colors.white} />}
+            disabled={actionLoading}
+          />
+          <Button 
+            title="Delete Invoice" 
+            onPress={handleDelete} 
+            variant="danger" 
+            style={styles.actionButton} 
+            iconLeft={<Ionicons name="trash-outline" size={18} color={colors.white} />}
+            loading={actionLoading}
+          />
         </View>
       </ScrollView>
     </ScreenContainer>
@@ -164,42 +244,35 @@ export const InvoiceDetailScreen: React.FC<InvoiceDetailScreenProps> = ({ naviga
 };
 
 const styles = StyleSheet.create({
-  container: { padding: 10, paddingBottom: 20 },
-  headerCard: { marginBottom: 15, padding:15 },
-  invoiceNumber: { fontSize: 22, fontWeight: 'bold', color: colors.primary, marginBottom: 5, textAlign: 'center' },
-  statusTextBase: { // Renamed from statusText and made a plain object
-    fontSize: 16, 
-    fontWeight: 'bold', 
-    textAlign: 'center', 
-    marginBottom: 15,
-  },
-  clientInfoContainer: { marginBottom:10, alignItems:'center'},
-  clientName: { fontSize:18, fontWeight:'500', marginBottom:3},
-  clientContact: { fontSize:14, color: colors.textSecondary},
-  dateRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 3 },
-  dateLabel: { fontSize: 14, color: colors.textSecondary },
-  dateValue: { fontSize: 14, fontWeight: '500' },
-  
-  itemsCard: { marginBottom: 15, padding:15 },
-  sectionTitle: { fontSize: 18, fontWeight: '600', marginBottom: 10 },
-  lineItemHeaderRow: { flexDirection: 'row', borderBottomWidth:1, borderBottomColor:colors.border, paddingBottom:5, marginBottom:5},
-  lineItemRow: { flexDirection: 'row', paddingVertical: 5 },
-  lineItemHeaderText: {fontWeight:'bold', color:colors.textSecondary},
-  lineItemDescription: { flex: 3, fontSize: 14 },
-  lineItemQty: { flex: 0.7, textAlign: 'right', fontSize: 14, marginRight:5 },
-  lineItemPrice: { flex: 1, textAlign: 'right', fontSize: 14, marginRight:5 },
-  lineItemTotal: { flex: 1, textAlign: 'right', fontWeight: 'bold', fontSize: 14 },
-
-  summaryCard: { marginBottom: 15, padding:15 },
-  summaryRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4 },
-  totalRow: { borderTopWidth:1, borderTopColor:colors.border, paddingTop:8, marginTop:5},
-  totalText: { fontWeight:'bold', fontSize:16},
-  
-  notesCard: { marginBottom: 15, padding:15 },
-  
-  actionsContainer: { marginTop:10 },
-  actionButton: { marginBottom: 10 },
-  messageText: { textAlign: 'center', padding: 20, fontSize: 16, color: colors.textSecondary },
+  centerAlign: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
+  topBarContainer: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingTop: 10, paddingBottom: 5, backgroundColor: colors.surface },
+  backButton: { padding: 8, marginRight: 10 },
+  headerTitle: { fontSize: 18, fontWeight: '600', color: colors.text },
+  container: { paddingTop: 5, paddingBottom: 40, paddingHorizontal: 15 },
+  headerSection: { alignItems: 'center', marginBottom: 20, paddingVertical: 15, backgroundColor: colors.surface, borderRadius: 8 },
+  invoiceNumber: { fontSize: 22, fontWeight: 'bold', color: colors.text, marginTop: 10, textAlign: 'center' },
+  invoiceStatus: { fontSize: 16, color: colors.primary, textTransform: 'capitalize', marginTop: 4, fontWeight: '500' },
+  card: { backgroundColor: colors.surface, borderRadius: 8, padding: 15, marginBottom: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 3, elevation: 3 },
+  cardTitle: { fontSize: 18, fontWeight: '600', color: colors.text, marginBottom: 12, borderBottomWidth: 1, borderBottomColor: colors.borderLight, paddingBottom: 8 }, 
+  detailItemContainer: { flexDirection: 'row', alignItems: 'flex-start', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.borderLight },
+  detailIcon: { marginRight: 15, marginTop: 3 },
+  detailTextContainer: { flex: 1 },
+  detailLabel: { fontSize: 13, color: colors.textSecondary, marginBottom: 3, textTransform: 'uppercase' },
+  detailValue: { fontSize: 16, color: colors.text, lineHeight: 22 },
+  totalRow: { borderBottomWidth: 0, marginTop: 5 },
+  totalLabel: { fontSize: 16, fontWeight: 'bold', textTransform: 'uppercase' },
+  totalValue: { fontSize: 20, fontWeight: 'bold', color: colors.primary },
+  lineItemContainer: { paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.borderLight },
+  lineItemDescription: { fontSize: 15, fontWeight: '500', color: colors.text, marginBottom: 4 },
+  lineItemDetails: { fontSize: 13, color: colors.textSecondary, marginBottom: 2 },
+  lineItemTotal: { fontSize: 14, fontWeight: 'bold', color: colors.primary, textAlign: 'right' },
+  infoText: { fontSize: 14, color: colors.textSecondary, textAlign: 'center', paddingVertical: 15 },
+  notesText: { fontSize: 14, color: colors.text, lineHeight: 20 }, 
+  actionsContainer: { marginTop: 10, paddingHorizontal: 5 },
+  actionButton: { marginBottom: 12 },
+  messageText: { marginTop: 10, fontSize: 16, color: colors.textSecondary, textAlign: 'center', paddingHorizontal: 20 },
+  errorMessageText: { marginTop: 10, fontSize: 16, color: colors.error, textAlign: 'center', paddingHorizontal: 20 },
+  inlineError: { color: colors.error, marginBottom: 15, textAlign: 'center' },
 });
 
 export default InvoiceDetailScreen; 
