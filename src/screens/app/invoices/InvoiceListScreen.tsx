@@ -1,120 +1,114 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity } from 'react-native';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import React, { useState, useCallback } from 'react';
+import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import ScreenContainer from '@/components/layout/ScreenContainer';
 import ListItem from '@/components/common/ListItem/ListItem';
 import Button from '@/components/common/Button/Button';
-import { InvoiceStackParamList } from '@/navigation/AppTabs';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack'; // For navigation prop type
+import { InvoiceStackParamList } from '@/navigation/InvoiceStack'; // Assuming you'll create this
 import { ROUTES } from '@/constants/routes';
-import { Invoice, Client } from '@/types'; // Assuming you have these types
-import { useSupabase } from '@/hooks/useSupabase';
+import { Invoice, Client } from '@/types';
 import { useAuth } from '@/hooks/useAuth';
 import { colors } from '@/constants/colors';
 import { Ionicons } from '@expo/vector-icons';
+import * as invoiceService from '@/api/invoiceService';
+import { format, parseISO } from 'date-fns'; // For date formatting
 
-type InvoiceListScreenProps = NativeStackScreenProps<InvoiceStackParamList, typeof ROUTES.INVOICE_LIST>;
+// Navigation prop type for this screen
+type InvoiceListNavigationProp = NativeStackNavigationProp<InvoiceStackParamList, typeof ROUTES.INVOICE_LIST>;
 
-// Mock data for initial display
-const MOCK_CLIENTS: { [id: string]: Client } = {
-  '1': { id: '1', name: 'Client Alpha' },
-  '2': { id: '2', name: 'Client Beta Inc.' },
-};
-
-const MOCK_INVOICES: Invoice[] = [
-  {
-    id: '1',
-    invoice_number: 'INV-2024-001',
-    client_id: '1',
-    date: new Date().toISOString(),
-    due_date: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(), // Due in 15 days
-    line_items: [{ id: 'li1', product_service_description: 'Consulting Hours', quantity: 5, unit_price: 75, total: 375 }],
-    subtotal: 375,
-    total_amount: 375,
-    status: 'sent',
-  },
-  {
-    id: '2',
-    invoice_number: 'INV-2024-002',
-    client_id: '2',
-    date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(), // 10 days ago
-    due_date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(), // Due in 5 days
-    line_items: [{ id: 'li2', product_service_description: 'Product A', quantity: 2, unit_price: 150, total: 300 }],
-    subtotal: 300,
-    total_amount: 300,
-    status: 'paid',
-  },
-];
-
-export const InvoiceListScreen: React.FC<InvoiceListScreenProps> = ({ navigation }) => {
+export const InvoiceListScreen: React.FC = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterVisible, setFilterVisible] = useState(false);
 
-  const supabase = useSupabase();
   const { user } = useAuth();
+  const navigation = useNavigation<InvoiceListNavigationProp>();
 
-  useEffect(() => {
-    fetchInvoices();
-  }, []);
-
-  const fetchInvoices = async () => {
+  const fetchInvoices = useCallback(async () => {
     if (!user) {
-        setError("User not authenticated");
-        setInvoices(MOCK_INVOICES.map(inv => ({...inv, client: MOCK_CLIENTS[inv.client_id]})));
-        return;
+      setError("User not authenticated. Cannot fetch invoices.");
+      setInvoices([]);
+      setLoading(false);
+      return;
     }
     setLoading(true);
     setError(null);
-    // Actual Supabase fetch would be here, joining with clients table if needed
-    // For now, using mock data
-    setInvoices(MOCK_INVOICES.map(inv => ({...inv, client: MOCK_CLIENTS[inv.client_id]})));
-    setLoading(false);
-  };
+    try {
+      const { data, error: fetchError } = await invoiceService.getInvoices(user.id);
+      if (fetchError) {
+        setError(fetchError.message);
+        window.alert(`Error fetching invoices: ${fetchError.message}`);
+        setInvoices([]);
+      } else if (data) {
+        setInvoices(data);
+      } else {
+        setInvoices([]);
+      }
+    } catch (e) {
+      const err = e as Error;
+      setError(err.message);
+      window.alert(`An unexpected error occurred: ${err.message}`);
+      setInvoices([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
 
+  useFocusEffect(
+    useCallback(() => {
+      fetchInvoices();
+    }, [fetchInvoices])
+  );
+  
   const filteredInvoices = invoices.filter(invoice => 
     invoice.invoice_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (invoice.client?.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
     invoice.status.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const renderItem = ({ item }: { item: Invoice }) => (
-    <ListItem
-      title={`Invoice ${item.invoice_number}`}
-      subtitle={`${item.client?.name || 'N/A'} - Due: ${new Date(item.due_date).toLocaleDateString()} - Status: ${item.status}`}
-      onPress={() => navigation.navigate(ROUTES.INVOICE_DETAIL, { invoiceId: item.id })}
-      rightIconName="chevron-forward-outline"
-    />
-  );
+  const renderItem = ({ item }: { item: Invoice }) => {
+    const clientName = item.client?.name || 'N/A';
+    const invoiceDate = item.invoice_date ? format(parseISO(item.invoice_date), 'MMM dd, yyyy') : 'N/A';
+    
+    return (
+      <ListItem
+        title={`#${item.invoice_number} - ${clientName}`}
+        subtitle={`Date: ${invoiceDate} | Status: ${item.status} | Total: $${item.total_amount.toFixed(2)}`}
+        onPress={() => navigation.navigate(ROUTES.INVOICE_DETAIL, { invoiceId: item.id })}
+        rightIconName="chevron-forward-outline"
+        // You can add a status indicator based on item.status here if desired
+      />
+    );
+  };
+
+  if (loading && invoices.length === 0) {
+    return (
+      <ScreenContainer style={styles.centerAlign}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={styles.messageText}>Loading invoices...</Text>
+      </ScreenContainer>
+    );
+  }
 
   return (
     <ScreenContainer>
       <View style={styles.controlsContainer}>
         <TextInput 
           style={styles.searchInput}
-          placeholder="Search by Inv #, Client, Status..."
+          placeholder="Search by #, client, or status..."
           value={searchQuery}
           onChangeText={setSearchQuery}
           placeholderTextColor={colors.gray}
         />
-        <TouchableOpacity onPress={() => setFilterVisible(!filterVisible)} style={styles.iconButton}>
-            <Ionicons name="filter-outline" size={24} color={colors.primary} />
-        </TouchableOpacity>
+        {/* Add filter button if needed */}
       </View>
-
-      {filterVisible && (
-        <View style={styles.filterPanel}>
-            <Text style={styles.filterText}>Filter options for invoices (e.g., by status, date range).</Text>
-            {/* Add filter components here */}
-        </View>
-      )}
-
-      {loading && <Text style={styles.loadingText}>Loading invoices...</Text>}
-      {error && <Text style={styles.errorText}>Error: {error}</Text>}
       
-      {!loading && !error && filteredInvoices.length === 0 && (
-        <Text style={styles.emptyText}>No invoices found. Create one!</Text>
+      {error && (
+          <View style={styles.inlineErrorView}>
+            <Text style={styles.errorText}>Error: {error}. Pull to retry.</Text>
+          </View>
       )}
 
       <FlatList
@@ -122,75 +116,100 @@ export const InvoiceListScreen: React.FC<InvoiceListScreenProps> = ({ navigation
         renderItem={renderItem}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.listContent}
-        onRefresh={fetchInvoices}
+        onRefresh={fetchInvoices} 
         refreshing={loading}
+        ListEmptyComponent={() => (
+          !loading && (
+            <View style={styles.emptyStateContainer}>
+              <Ionicons name="document-text-outline" size={64} color={colors.gray} />
+              <Text style={styles.emptyStateText}>{searchQuery ? 'No invoices match your search.' : 'No invoices yet.'}</Text>
+              {!searchQuery && <Text style={styles.emptyStateSubText}>Create your first invoice to get started.</Text>}
+            </View>
+          )
+        )}
       />
       <Button
-        title="Create New Invoice"
+        title="Add New Invoice"
         onPress={() => navigation.navigate(ROUTES.INVOICE_FORM, {})}
         style={styles.addButton}
+        iconLeft={<Ionicons name="add-circle-outline" size={20} color={colors.white} />}
       />
     </ScreenContainer>
   );
 };
 
 const styles = StyleSheet.create({
+  centerAlign: { 
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  messageText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: colors.textSecondary,
+  },
   controlsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 5,
+    paddingHorizontal: 10,
+    paddingTop: 10,
     marginBottom: 10,
   },
   searchInput: {
     flex: 1,
-    height: 40,
-    backgroundColor: colors.lightGray,
+    height: 44,
+    backgroundColor: colors.inputBackground,
     borderRadius: 8,
-    paddingHorizontal: 10,
+    paddingHorizontal: 12,
     marginRight: 10,
     fontSize: 16,
     borderWidth: 1,
     borderColor: colors.border,
-  },
-  iconButton: {
-    padding: 8,
-  },
-  filterPanel: {
-    padding: 15,
-    backgroundColor: colors.surface,
-    borderRadius: 8,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  filterText: {
-    color: colors.textSecondary,
-    textAlign: 'center',
+    color: colors.text,
   },
   listContent: {
-    paddingBottom: 70,
+    paddingBottom: 80, // Space for the add button
+    paddingHorizontal: 10,
   },
-  loadingText: {
-    textAlign: 'center',
-    padding: 20,
-    color: colors.textSecondary,
+  inlineErrorView: {
+    backgroundColor: colors.errorBackground,
+    padding: 10,
+    marginHorizontal: 10,
+    marginBottom: 10,
+    borderRadius: 5,
   },
   errorText: {
-    textAlign: 'center',
-    padding: 20,
     color: colors.error,
-  },
-  emptyText: {
     textAlign: 'center',
-    padding: 20,
-    color: colors.textSecondary,
-    fontSize: 16,
   },
   addButton: {
     position: 'absolute',
     bottom: 20,
     left: 20,
     right: 20,
+    zIndex: 1,
+  },
+  emptyStateContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
+    marginTop: 50,
+  },
+  emptyStateText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.textSecondary,
+    marginTop: 16,
+    textAlign: 'center',
+  },
+  emptyStateSubText: {
+    fontSize: 14,
+    color: colors.gray,
+    marginTop: 8,
+    textAlign: 'center',
   },
 });
 

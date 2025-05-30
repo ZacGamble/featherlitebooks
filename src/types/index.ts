@@ -71,15 +71,16 @@ export interface Invoice {
   user_id: string; // UUID, FK to auth.users.id
   client_id: string; // UUID, FK to clients table
   invoice_number: string; // TEXT (should be unique per user)
-  issue_date: string; // DATE
+  invoice_date: string; // DATE (renamed from issue_date)
   due_date: string; // DATE
   status: InvoiceStatus; // TEXT (e.g., 'draft', 'sent', 'paid', 'overdue', 'void')
+  category?: string | null; // TEXT, Nullable (Added)
   subtotal: number; // NUMERIC
-  tax_rate?: number | null; // NUMERIC, Nullable (e.g., 0.07 for 7%)
+  discount_amount?: number | null; // NUMERIC, Nullable (Added)
   tax_amount?: number | null; // NUMERIC, Nullable
   total_amount: number; // NUMERIC
   notes?: string | null; // TEXT, Nullable
-  currency: string; // TEXT (e.g., 'USD', 'EUR'), Default 'USD'
+  payment_terms?: string | null; // TEXT, Nullable (Added)
   created_at: string; // TIMESTAMPTZ
   updated_at: string; // TIMESTAMPTZ
   client?: Client; 
@@ -90,11 +91,12 @@ export interface Invoice {
 export interface InvoiceLineItem {
   id: string; // UUID, Primary Key
   invoice_id: string; // UUID, FK to invoices table
+  user_id: string; // UUID, FK to auth.users.id (Added)
   inventory_item_id?: string | null; // UUID, FK to inventory_items (optional, if item is from inventory)
   description: string; // TEXT (product/service description)
-  quantity: number; // INTEGER or NUMERIC(10,2) depending on precision needed
+  quantity: number; // NUMERIC (INTEGER or NUMERIC(10,2) depending on precision needed)
   unit_price: number; // NUMERIC
-  total_price: number; // NUMERIC (quantity * unit_price)
+  line_total: number; // NUMERIC (quantity * unit_price) (renamed from total_price)
   created_at: string; // TIMESTAMPTZ
   updated_at: string; // TIMESTAMPTZ
 

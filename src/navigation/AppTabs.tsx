@@ -26,6 +26,8 @@ import { NavigatorScreenParams } from '@react-navigation/native';
 
 // Import the new InventoryStack and its ParamList
 import { InventoryStack, InventoryStackParamList } from './InventoryStack';
+// Import the new InvoiceStack and its ParamList
+import { InvoiceStack, InvoiceStackParamList } from './InvoiceStack';
 
 const defaultStackScreenOptions: NativeStackNavigationOptions = {
   headerShown: false,
@@ -48,20 +50,6 @@ const InventoryStackNavigator = () => (
   </InventoryStack.Navigator>
 );
 */
-
-export type InvoiceStackParamList = {
-  [ROUTES.INVOICE_LIST]: undefined;
-  [ROUTES.INVOICE_FORM]: { invoiceId?: string };
-  [ROUTES.INVOICE_DETAIL]: { invoiceId: string };
-};
-const InvoiceStackNav = createNativeStackNavigator<InvoiceStackParamList>();
-const InvoiceStackNavigator = () => (
-  <InvoiceStackNav.Navigator screenOptions={defaultStackScreenOptions}>
-    <InvoiceStackNav.Screen name={ROUTES.INVOICE_LIST} component={InvoiceListScreen} />
-    <InvoiceStackNav.Screen name={ROUTES.INVOICE_FORM} component={InvoiceFormScreen} />
-    <InvoiceStackNav.Screen name={ROUTES.INVOICE_DETAIL} component={InvoiceDetailScreen} />
-  </InvoiceStackNav.Navigator>
-);
 
 export type ExpenseStackParamList = {
   [ROUTES.EXPENSE_LIST]: undefined;
@@ -138,7 +126,11 @@ const AppTabs = () => {
         component={InventoryStack}
         options={{ tabBarLabel: 'Inventory' }} 
       />
-      <Tab.Screen name={ROUTES.INVOICES_STACK} component={InvoiceStackNavigator} options={{ tabBarLabel: 'Invoices' }} />
+      <Tab.Screen 
+        name={ROUTES.INVOICES_STACK} 
+        component={InvoiceStack}
+        options={{ tabBarLabel: 'Invoices' }} 
+      />
       <Tab.Screen
         name={ROUTES.EXPENSES_STACK}
         component={ExpenseStackNavigator}
