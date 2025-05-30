@@ -11,7 +11,7 @@ import { InventoryStack } from './InventoryStack';
 import { InvoiceStack } from './InvoiceStack';
 import { ExpenseStack } from './ExpenseStack'; // Added ExpenseStack import
 import DashboardScreen from '@/screens/app/DashboardScreen'; // Uncommented and corrected import
-// import { ReportsScreen } from '@/screens/app/ReportsScreen'; // Reports still commented out
+import ReportsScreen from '@/screens/app/ReportsScreen';
 import { SettingsStack } from './SettingsStack'; // Uncommented and corrected import (named)
 
 // Placeholder/Example for other stacks/screens if needed
@@ -32,7 +32,7 @@ export type AppTabsParamList = {
   [ROUTES.INVENTORY_STACK]: undefined; // Navigates to the InventoryStack navigator
   [ROUTES.INVOICES_STACK]: undefined; // Navigates to the InvoiceStack navigator
   [ROUTES.EXPENSES_STACK]: undefined; // Navigates to the ExpenseStack navigator
-  // [ROUTES.REPORTS]: undefined; // Reports still commented out
+  [ROUTES.REPORTS]: undefined; // Uncommented
   [ROUTES.SETTINGS_STACK]: undefined; // Uncommented
 };
 
@@ -72,6 +72,8 @@ const AppTabs: React.FC = () => {
             iconName = focused ? 'document-text' : 'document-text-outline';
           } else if (route.name === ROUTES.EXPENSES_STACK) {
             iconName = focused ? 'wallet' : 'wallet-outline';
+          } else if (route.name === ROUTES.REPORTS) {
+            iconName = focused ? 'bar-chart' : 'bar-chart-outline';
           } else if (route.name === ROUTES.SETTINGS_STACK) {
             iconName = focused ? 'settings' : 'settings-outline';
           }
@@ -84,6 +86,7 @@ const AppTabs: React.FC = () => {
       <Tab.Screen name={ROUTES.INVENTORY_STACK} component={InventoryStack} options={{ title: 'Inventory' }} />
       <Tab.Screen name={ROUTES.INVOICES_STACK} component={InvoiceStack} options={{ title: 'Invoices' }} />
       <Tab.Screen name={ROUTES.EXPENSES_STACK} component={ExpenseStack} options={{ title: 'Expenses' }} />
+      <Tab.Screen name={ROUTES.REPORTS} component={ReportsScreen} options={{ title: 'Reports' }} />
       <Tab.Screen name={ROUTES.SETTINGS_STACK} component={SettingsStack} options={{ title: 'Settings' }} />
     </Tab.Navigator>
   );

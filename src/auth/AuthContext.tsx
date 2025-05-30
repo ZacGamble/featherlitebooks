@@ -92,16 +92,22 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           }
 
           if (data) {
-            setProfile(data as UserProfile);
+            // Ensure default_currency is set
+            const loadedProfile = data as UserProfile;
+            if (!loadedProfile.default_currency) {
+              loadedProfile.default_currency = 'USD';
+            }
+            setProfile(loadedProfile);
           } else if (status === 406) {
             console.log('No profile found for user, attempting to create one...');
             const defaultUsername = user.email?.split('@')[0] || `user-${user.id.substring(0, 8)}`;
-            const newProfileData = {
+            const newProfileData: Partial<UserProfile> = { // Use Partial for initial creation
               id: user.id,
               username: defaultUsername,
+              default_currency: 'USD', // Set default currency on creation
             };
 
-            const { data: createdProfile, error: createError } = await supabase
+            const { data: createdProfileData, error: createError } = await supabase
               .from('profiles')
               .insert(newProfileData)
               .select(profileFieldsToSelect)
@@ -110,9 +116,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             if (createError) {
               console.error('Error creating profile:', createError.message);
               setProfile(null);
-            } else if (createdProfile) {
-              console.log('Profile created successfully:', createdProfile);
-              setProfile(createdProfile as UserProfile);
+            } else if (createdProfileData) {
+              console.log('Profile created successfully:', createdProfileData);
+              // Ensure default_currency is set, though it should be from insert
+              const newProfile = createdProfileData as UserProfile;
+              if (!newProfile.default_currency) {
+                newProfile.default_currency = 'USD';
+              }
+              setProfile(newProfile);
             } else {
               setProfile(null);
             }
@@ -129,7 +140,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     fetchProfile();
-  }, [user]);
+  }, [user?.id]);
 
   // Generic handler for auth operations to reduce boilerplate
   const handleAuthOperation = async (

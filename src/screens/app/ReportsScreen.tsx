@@ -2,12 +2,12 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack'; // Or BottomTabScreenProps
 import ScreenContainer from '@/components/layout/ScreenContainer';
-import { AppTabParamList } from '@/navigation/AppTabs'; // Adjust if needed
+import { AppTabsParamList } from '@/navigation/AppTabs'; // Corrected to AppTabsParamList
 import { ROUTES } from '@/constants/routes';
 import { colors } from '@/constants/colors';
 
 // Assuming Reports is a direct screen in AppTabs or a similar stack
-type ReportsScreenProps = NativeStackScreenProps<AppTabParamList, typeof ROUTES.REPORTS>;
+type ReportsScreenProps = NativeStackScreenProps<AppTabsParamList, typeof ROUTES.REPORTS>;
 
 export const ReportsScreen: React.FC<ReportsScreenProps> = ({ navigation }) => {
   return (
