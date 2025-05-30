@@ -47,9 +47,8 @@ export interface Database {
           name: string;
           sku: string;
           unit_price: number;
-          quantity: number;
-          vendor: string | null;
-          category: string | null;
+          quantity_on_hand: number;
+          low_stock_threshold: number;
           user_id: string; // foreign key to auth.users.id
         };
         Insert: {
@@ -58,9 +57,8 @@ export interface Database {
           name: string;
           sku: string;
           unit_price: number;
-          quantity: number;
-          vendor?: string | null;
-          category?: string | null;
+          quantity_on_hand: number;
+          low_stock_threshold: number;
           user_id: string;
         };
         Update: {
@@ -69,9 +67,8 @@ export interface Database {
           name?: string;
           sku?: string;
           unit_price?: number;
-          quantity?: number;
-          vendor?: string | null;
-          category?: string | null;
+          quantity_on_hand?: number;
+          low_stock_threshold?: number;
           user_id?: string;
         };
         Relationships: [

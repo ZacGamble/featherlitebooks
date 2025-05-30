@@ -6,56 +6,73 @@ const TABLE_NAME = 'clients';
 
 /**
  * Fetches all clients for a given user.
+ * @param userId The ID of the user whose clients to fetch.
+ * @returns A promise that resolves to an object containing the client data or an error.
  */
 export const getClients = async (userId: string): Promise<{ data: Client[] | null; error: PostgrestError | null }> => {
   return supabase
     .from(TABLE_NAME)
-    .select('*')
-    .eq('user_id', userId);
-    // Add .order() as needed, e.g., by name
+    .select('*') // Select all fields as defined in Client type
+    .eq('user_id', userId)
+    .order('name', { ascending: true }); // Example: order by name
 };
 
 /**
  * Fetches a single client by its ID.
+ * @param clientId The ID of the client to fetch.
+ * @returns A promise that resolves to an object containing the client data or an error.
  */
 export const getClientById = async (clientId: string): Promise<{ data: Client | null; error: PostgrestError | null }> => {
   return supabase
     .from(TABLE_NAME)
-    .select('*')
+    .select('*') // Select all fields
     .eq('id', clientId)
     .single();
 };
 
 /**
- * Adds a new client.
- * Ensure clientData includes user_id if your table requires it.
+ * Creates a new client.
+ * The clientData should include the user_id.
+ * System-generated fields like id, created_at, updated_at should be omitted.
+ * @param clientData The data for the new client.
+ * @returns A promise that resolves to an object containing the newly created client data or an error.
  */
-export const addClient = async (clientData: Omit<Client, 'id'>): Promise<{ data: Client[] | null; error: PostgrestError | null }> => {
+export const createClient = async (clientData: Omit<Client, 'id' | 'created_at' | 'updated_at'>): Promise<{ data: Client | null; error: PostgrestError | null }> => {
   return supabase
     .from(TABLE_NAME)
-    .insert([clientData])
-    .select(); 
+    .insert(clientData) // clientData now includes user_id as per Client type
+    .select('*')
+    .single(); 
 };
 
 /**
  * Updates an existing client.
+ * @param clientId The ID of the client to update.
+ * @param clientData The partial data to update the client with.
+ * @returns A promise that resolves to an object containing the updated client data or an error.
  */
-export const updateClient = async (clientId: string, clientData: Partial<Client>): Promise<{ data: Client[] | null; error: PostgrestError | null }> => {
+export const updateClient = async (clientId: string, clientData: Partial<Omit<Client, 'id' | 'user_id' | 'created_at' | 'updated_at'>>): Promise<{ data: Client | null; error: PostgrestError | null }> => {
   return supabase
     .from(TABLE_NAME)
     .update(clientData)
     .eq('id', clientId)
-    .select();
+    .select('*')
+    .single();
 };
 
 /**
  * Deletes a client by its ID.
+ * @param clientId The ID of the client to delete.
+ * @returns A promise that resolves to an object containing an error if one occurred, or null otherwise.
  */
 export const deleteClient = async (clientId: string): Promise<{ error: PostgrestError | null }> => {
-  return supabase
+  // Supabase delete returns an object with `data` (usually null for delete) and `error`.
+  // We only care about the error for this simplified return.
+  const { error } = await supabase
     .from(TABLE_NAME)
     .delete()
     .eq('id', clientId);
+  return { error };
 };
 
 // TODO: Add functions for searching clients, etc. 

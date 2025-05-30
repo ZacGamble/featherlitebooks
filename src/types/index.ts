@@ -40,11 +40,9 @@ export interface InventoryItem {
   name: string; // TEXT
   sku?: string | null; // TEXT, Nullable
   description?: string | null; // TEXT, Nullable
-  quantity: number; // INTEGER
+  quantity_on_hand: number; // INTEGER - RENAMED FROM quantity
   unit_price: number; // NUMERIC
-  category_id?: string | null; // UUID, FK to categories table (optional, if you have one)
-  vendor_id?: string | null; // UUID, FK to vendors table (optional, if you have one)
-  reorder_point?: number | null; // INTEGER, Nullable
+  low_stock_threshold?: number | null; // INTEGER, Nullable
   created_at: string; // TIMESTAMPTZ
   updated_at: string; // TIMESTAMPTZ
 }
@@ -84,8 +82,6 @@ export interface Invoice {
   currency: string; // TEXT (e.g., 'USD', 'EUR'), Default 'USD'
   created_at: string; // TIMESTAMPTZ
   updated_at: string; // TIMESTAMPTZ
-
-  // Optional convenience fields for related data (if fetched together)
   client?: Client; 
   line_items?: InvoiceLineItem[];
 }

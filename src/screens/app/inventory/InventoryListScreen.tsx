@@ -1,80 +1,87 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity } from 'react-native';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import React, { useState, useCallback } from 'react';
+import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import ScreenContainer from '@/components/layout/ScreenContainer';
 import ListItem from '@/components/common/ListItem/ListItem';
 import Button from '@/components/common/Button/Button';
-import { InventoryStackParamList } from '@/navigation/AppTabs'; // Corrected import path
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { InventoryStackParamList } from '@/navigation/InventoryStack';
 import { ROUTES } from '@/constants/routes';
-import { InventoryItem } from '@/types'; // Assuming you have this type
-import { useSupabase } from '@/hooks/useSupabase'; // For fetching data
+import { InventoryItem } from '@/types';
 import { useAuth } from '@/hooks/useAuth';
 import { colors } from '@/constants/colors';
 import { Ionicons } from '@expo/vector-icons';
+import * as inventoryService from '@/api/inventoryService';
 
-type InventoryListScreenProps = NativeStackScreenProps<InventoryStackParamList, typeof ROUTES.INVENTORY_LIST>;
+type Props = NativeStackScreenProps<InventoryStackParamList, typeof ROUTES.INVENTORY_LIST>;
 
-// Mock data for initial display
-const MOCK_ITEMS: InventoryItem[] = [
-  { id: '1', name: 'Feather Pen', sku: 'FP001', quantity: 100, unit_price: 1.99, category: 'Stationery' },
-  { id: '2', name: 'Lite Notebook', sku: 'LN002', quantity: 50, unit_price: 4.50, category: 'Stationery' },
-  { id: '3', name: 'Book Weight Scale', sku: 'BWS003', quantity: 10, unit_price: 29.99, category: 'Tools' },
-];
-
-export const InventoryListScreen: React.FC<InventoryListScreenProps> = ({ navigation }) => {
+export const InventoryListScreen: React.FC<Props> = ({ navigation }) => {
   const [items, setItems] = useState<InventoryItem[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterVisible, setFilterVisible] = useState(false);
+  // const [filterVisible, setFilterVisible] = useState(false); // Future use
 
-  const supabase = useSupabase();
   const { user } = useAuth();
 
-  useEffect(() => {
-    fetchInventoryItems();
-  }, []);
-
-  const fetchInventoryItems = async () => {
+  const fetchItems = useCallback(async () => {
     if (!user) {
-        setError("User not authenticated");
-        setItems(MOCK_ITEMS); // Fallback to mock data if user is not available
-        return;
+      setError("User not authenticated. Cannot fetch inventory.");
+      setItems([]);
+      setLoading(false);
+      return;
     }
     setLoading(true);
     setError(null);
-    // try {
-    //   const { data, error: fetchError } = await supabase
-    //     .from('inventory_items') // Replace with your actual table name
-    //     .select('*')
-    //     .eq('user_id', user.id); // Filter by user_id
+    try {
+      const { data, error: fetchError } = await inventoryService.getInventoryItems(user.id);
+      if (fetchError) {
+        setError(fetchError.message);
+        window.alert(`Error fetching inventory: ${fetchError.message}`);
+        setItems([]);
+      } else if (data) {
+        setItems(data);
+      } else {
+        setItems([]);
+      }
+    } catch (e) {
+      const err = e as Error;
+      setError(err.message);
+      window.alert(`An unexpected error occurred: ${err.message}`);
+      setItems([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
 
-    //   if (fetchError) throw fetchError;
-    //   setItems(data || []);
-    // } catch (e) {
-    //   setError((e as Error).message);
-    //   setItems(MOCK_ITEMS); // Fallback to mock data on error
-    // } finally {
-    //   setLoading(false);
-    // }
-    // For now, using mock data to avoid Supabase setup issues during scaffolding
-    setItems(MOCK_ITEMS);
-    setLoading(false);
-  };
+  useFocusEffect(
+    useCallback(() => {
+      fetchItems();
+    }, [fetchItems])
+  );
   
   const filteredItems = items.filter(item => 
     item.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    item.sku.toLowerCase().includes(searchQuery.toLowerCase())
+    (item.sku || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const renderItem = ({ item }: { item: InventoryItem }) => (
     <ListItem
       title={item.name}
-      subtitle={`SKU: ${item.sku} | Qty: ${item.quantity} | Price: $${item.unit_price.toFixed(2)}`}
-      onPress={() => navigation.navigate(ROUTES.INVENTORY_DETAIL, { itemId: item.id })}
+      subtitle={`SKU: ${item.sku || 'N/A'} | Qty: ${item.quantity_on_hand} | Price: $${item.unit_price.toFixed(2)}`}
+      onPress={() => navigation.navigate(ROUTES.INVENTORY_ITEM_DETAIL, { itemId: item.id })}
       rightIconName="chevron-forward-outline"
     />
   );
+
+  if (loading && items.length === 0) { // Show full screen loader only on initial load
+    return (
+      <ScreenContainer style={styles.centerAlign}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={styles.messageText}>Loading inventory...</Text>
+      </ScreenContainer>
+    );
+  }
 
   return (
     <ScreenContainer>
@@ -86,23 +93,21 @@ export const InventoryListScreen: React.FC<InventoryListScreenProps> = ({ naviga
           onChangeText={setSearchQuery}
           placeholderTextColor={colors.gray}
         />
-        <TouchableOpacity onPress={() => setFilterVisible(!filterVisible)} style={styles.iconButton}>
+        {/* <TouchableOpacity onPress={() => setFilterVisible(!filterVisible)} style={styles.iconButton}>
             <Ionicons name="filter-outline" size={24} color={colors.primary} />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
 
-      {filterVisible && (
+      {/* {filterVisible && (
         <View style={styles.filterPanel}>
-            <Text style={styles.filterText}>Filter options placeholder (e.g., by category, stock status).</Text>
-            {/* Add filter components here */}
+            <Text style={styles.filterText}>Inventory filter options will be here.</Text>
         </View>
-      )}
-
-      {loading && <Text style={styles.loadingText}>Loading items...</Text>}
-      {error && <Text style={styles.errorText}>Error: {error}</Text>}
+      )} */}
       
-      {!loading && !error && filteredItems.length === 0 && (
-        <Text style={styles.emptyText}>No inventory items found. Add some!</Text>
+      {error && (
+          <View style={styles.inlineErrorView}>
+            <Text style={styles.errorText}>Error: {error}. Pull to retry.</Text>
+          </View>
       )}
 
       <FlatList
@@ -110,75 +115,105 @@ export const InventoryListScreen: React.FC<InventoryListScreenProps> = ({ naviga
         renderItem={renderItem}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.listContent}
-        onRefresh={fetchInventoryItems} // Pull to refresh
-        refreshing={loading}
+        onRefresh={fetchItems} 
+        refreshing={loading} // Shows pull-to-refresh indicator
+        ListEmptyComponent={() => (
+          !loading && (
+            <View style={styles.emptyStateContainer}>
+              <Ionicons name="file-tray-stacked-outline" size={64} color={colors.gray} />
+              <Text style={styles.emptyStateText}>{searchQuery ? 'No items match your search.' : 'No inventory items yet.'}</Text>
+              {!searchQuery && <Text style={styles.emptyStateSubText}>Add your first item to get started.</Text>}
+            </View>
+          )
+        )}
       />
       <Button
         title="Add New Item"
-        onPress={() => navigation.navigate(ROUTES.INVENTORY_FORM, {})}
+        onPress={() => navigation.navigate(ROUTES.INVENTORY_ITEM_FORM, {})}
         style={styles.addButton}
+        iconLeft={<Ionicons name="add-circle-outline" size={20} color={colors.white} />}
       />
     </ScreenContainer>
   );
 };
 
 const styles = StyleSheet.create({
+  centerAlign: { 
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  messageText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: colors.textSecondary,
+  },
   controlsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 5, // Match ScreenContainer padding or adjust
+    paddingHorizontal: 10,
+    paddingTop: 10,
     marginBottom: 10,
   },
   searchInput: {
     flex: 1,
-    height: 40,
-    backgroundColor: colors.lightGray,
+    height: 44,
+    backgroundColor: colors.inputBackground,
     borderRadius: 8,
-    paddingHorizontal: 10,
+    paddingHorizontal: 12,
     marginRight: 10,
     fontSize: 16,
     borderWidth: 1,
     borderColor: colors.border,
+    color: colors.text,
   },
   iconButton: {
-    padding: 8,
+    padding: 10,
   },
-  filterPanel: {
-    padding: 15,
-    backgroundColor: colors.surface,
-    borderRadius: 8,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  filterText: {
-    color: colors.textSecondary,
-    textAlign: 'center',
-  },
+  // filterPanel: { /* ... */ },
+  // filterText: { /* ... */ },
   listContent: {
-    paddingBottom: 70, // Ensure space for the add button
+    paddingBottom: 80,
+    paddingHorizontal: 10,
   },
-  loadingText: {
-    textAlign: 'center',
-    padding: 20,
-    color: colors.textSecondary,
+  inlineErrorView: {
+    backgroundColor: colors.errorBackground,
+    padding: 10,
+    marginHorizontal: 10,
+    marginBottom: 10,
+    borderRadius: 5,
   },
   errorText: {
-    textAlign: 'center',
-    padding: 20,
     color: colors.error,
-  },
-  emptyText: {
     textAlign: 'center',
-    padding: 20,
-    color: colors.textSecondary,
-    fontSize: 16,
   },
   addButton: {
     position: 'absolute',
     bottom: 20,
     left: 20,
     right: 20,
+    zIndex: 1,
+  },
+  emptyStateContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
+    marginTop: 50,
+  },
+  emptyStateText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.textSecondary,
+    marginTop: 16,
+    textAlign: 'center',
+  },
+  emptyStateSubText: {
+    fontSize: 14,
+    color: colors.gray,
+    marginTop: 8,
+    textAlign: 'center',
   },
 });
 

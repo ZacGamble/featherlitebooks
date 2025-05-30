@@ -1,5 +1,4 @@
 import React from 'react';
-// import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'; // Changed
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs'; // Added
 import { createNativeStackNavigator, NativeStackNavigationOptions } from '@react-navigation/native-stack';
 import { ROUTES } from '@/constants/routes';
@@ -8,9 +7,10 @@ import ReportsScreen from '@/screens/app/ReportsScreen';
 import SettingsScreen from '@/screens/app/SettingsScreen';
 import ProfileScreen from '@/screens/app/ProfileScreen';
 
-import InventoryListScreen from '@/screens/app/inventory/InventoryListScreen';
-import InventoryFormScreen from '@/screens/app/inventory/InventoryFormScreen';
-import InventoryDetailScreen from '@/screens/app/inventory/InventoryDetailScreen';
+// Remove these Inventory screen imports if they are only used by the local InventoryStack we are removing
+// import InventoryListScreen from '@/screens/app/inventory/InventoryListScreen';
+// import InventoryFormScreen from '@/screens/app/inventory/InventoryFormScreen';
+// import InventoryDetailScreen from '@/screens/app/inventory/InventoryDetailScreen';
 
 import { InvoiceListScreen, InvoiceDetailScreen, InvoiceFormScreen } from '@/screens/app/invoices';
 import ExpenseListScreen from '@/screens/app/expenses/ExpenseListScreen';
@@ -24,15 +24,20 @@ import { ClientDetailScreen } from '@/screens/app/clients/ClientDetailScreen';
 import { ClientFormScreen } from '@/screens/app/clients/ClientFormScreen';
 import { NavigatorScreenParams } from '@react-navigation/native';
 
+// Import the new InventoryStack and its ParamList
+import { InventoryStack, InventoryStackParamList } from './InventoryStack';
+
 const defaultStackScreenOptions: NativeStackNavigationOptions = {
   headerShown: false,
 };
 
 // Define ParamList for each stack within the tabs
+// REMOVE aaaaaall of this old InventoryStack specific code
+/*
 export type InventoryStackParamList = {
   [ROUTES.INVENTORY_LIST]: undefined;
-  [ROUTES.INVENTORY_FORM]: { itemId?: string };
-  [ROUTES.INVENTORY_DETAIL]: { itemId: string };
+  [ROUTES.INVENTORY_FORM]: { itemId?: string }; // Make sure INVENTORY_FORM is correct route name
+  [ROUTES.INVENTORY_DETAIL]: { itemId: string }; // Make sure INVENTORY_DETAIL is correct route name
 };
 const InventoryStack = createNativeStackNavigator<InventoryStackParamList>();
 const InventoryStackNavigator = () => (
@@ -42,19 +47,20 @@ const InventoryStackNavigator = () => (
     <InventoryStack.Screen name={ROUTES.INVENTORY_DETAIL} component={InventoryDetailScreen} />
   </InventoryStack.Navigator>
 );
+*/
 
 export type InvoiceStackParamList = {
   [ROUTES.INVOICE_LIST]: undefined;
   [ROUTES.INVOICE_FORM]: { invoiceId?: string };
   [ROUTES.INVOICE_DETAIL]: { invoiceId: string };
 };
-const InvoiceStack = createNativeStackNavigator<InvoiceStackParamList>();
+const InvoiceStackNav = createNativeStackNavigator<InvoiceStackParamList>();
 const InvoiceStackNavigator = () => (
-  <InvoiceStack.Navigator screenOptions={defaultStackScreenOptions}>
-    <InvoiceStack.Screen name={ROUTES.INVOICE_LIST} component={InvoiceListScreen} />
-    <InvoiceStack.Screen name={ROUTES.INVOICE_FORM} component={InvoiceFormScreen} />
-    <InvoiceStack.Screen name={ROUTES.INVOICE_DETAIL} component={InvoiceDetailScreen} />
-  </InvoiceStack.Navigator>
+  <InvoiceStackNav.Navigator screenOptions={defaultStackScreenOptions}>
+    <InvoiceStackNav.Screen name={ROUTES.INVOICE_LIST} component={InvoiceListScreen} />
+    <InvoiceStackNav.Screen name={ROUTES.INVOICE_FORM} component={InvoiceFormScreen} />
+    <InvoiceStackNav.Screen name={ROUTES.INVOICE_DETAIL} component={InvoiceDetailScreen} />
+  </InvoiceStackNav.Navigator>
 );
 
 export type ExpenseStackParamList = {
@@ -62,13 +68,13 @@ export type ExpenseStackParamList = {
   [ROUTES.EXPENSE_DETAIL]: { expenseId: string };
   [ROUTES.EXPENSE_FORM]: { expenseId?: string };
 };
-const ExpenseStack = createNativeStackNavigator<ExpenseStackParamList>();
+const ExpenseStackNav = createNativeStackNavigator<ExpenseStackParamList>();
 const ExpenseStackNavigator = () => (
-  <ExpenseStack.Navigator screenOptions={defaultStackScreenOptions}>
-    <ExpenseStack.Screen name={ROUTES.EXPENSE_LIST} component={ExpenseListScreen} />
-    <ExpenseStack.Screen name={ROUTES.EXPENSE_FORM} component={ExpenseFormScreen} />
-    <ExpenseStack.Screen name={ROUTES.EXPENSE_DETAIL} component={ExpenseDetailScreen} />
-  </ExpenseStack.Navigator>
+  <ExpenseStackNav.Navigator screenOptions={defaultStackScreenOptions}>
+    <ExpenseStackNav.Screen name={ROUTES.EXPENSE_LIST} component={ExpenseListScreen} />
+    <ExpenseStackNav.Screen name={ROUTES.EXPENSE_FORM} component={ExpenseFormScreen} />
+    <ExpenseStackNav.Screen name={ROUTES.EXPENSE_DETAIL} component={ExpenseDetailScreen} />
+  </ExpenseStackNav.Navigator>
 );
 
 export type SettingsStackParamList = {
@@ -83,21 +89,21 @@ const SettingsStackNavigator = () => (
     </SettingsNavigatorStack.Navigator>
 );
 
-const ClientStack = createNativeStackNavigator<ClientStackParamList>();
+const ClientStackNav = createNativeStackNavigator<ClientStackParamList>();
 const ClientStackNavigator = () => (
-  <ClientStack.Navigator screenOptions={defaultStackScreenOptions}>
-    <ClientStack.Screen name={ROUTES.CLIENT_LIST} component={ClientListScreen} />
-    <ClientStack.Screen name={ROUTES.CLIENT_DETAIL} component={ClientDetailScreen} />
-    <ClientStack.Screen name={ROUTES.CLIENT_FORM} component={ClientFormScreen} />
-  </ClientStack.Navigator>
+  <ClientStackNav.Navigator screenOptions={defaultStackScreenOptions}>
+    <ClientStackNav.Screen name={ROUTES.CLIENT_LIST} component={ClientListScreen} />
+    <ClientStackNav.Screen name={ROUTES.CLIENT_DETAIL} component={ClientDetailScreen} />
+    <ClientStackNav.Screen name={ROUTES.CLIENT_FORM} component={ClientFormScreen} />
+  </ClientStackNav.Navigator>
 );
 
 export type AppTabParamList = {
   [ROUTES.DASHBOARD]: undefined;
-  [ROUTES.INVENTORY_STACK]: NavigatorScreenParams<InventoryStackParamList>;
+  [ROUTES.CLIENTS_STACK]: NavigatorScreenParams<ClientStackParamList>;
+  [ROUTES.INVENTORY_TAB]: NavigatorScreenParams<InventoryStackParamList>;
   [ROUTES.INVOICES_STACK]: NavigatorScreenParams<InvoiceStackParamList>;
   [ROUTES.EXPENSES_STACK]: NavigatorScreenParams<ExpenseStackParamList>;
-  [ROUTES.CLIENTS_STACK]: NavigatorScreenParams<ClientStackParamList>;
   [ROUTES.REPORTS]: undefined;
   [ROUTES.SETTINGS_STACK]: NavigatorScreenParams<SettingsStackParamList>;
 };
@@ -122,17 +128,21 @@ const AppTabs = () => {
       }}
     >
       <Tab.Screen name={ROUTES.DASHBOARD} component={DashboardScreen} options={{ tabBarLabel: 'Dashboard' }} />
-      <Tab.Screen name={ROUTES.INVENTORY_STACK} component={InventoryStackNavigator} options={{ tabBarLabel: 'Inventory' }} />
+      <Tab.Screen
+        name={ROUTES.CLIENTS_STACK}
+        component={ClientStackNavigator}
+        options={{ tabBarLabel: 'Clients' }}
+      />
+      <Tab.Screen 
+        name={ROUTES.INVENTORY_TAB} 
+        component={InventoryStack}
+        options={{ tabBarLabel: 'Inventory' }} 
+      />
       <Tab.Screen name={ROUTES.INVOICES_STACK} component={InvoiceStackNavigator} options={{ tabBarLabel: 'Invoices' }} />
       <Tab.Screen
         name={ROUTES.EXPENSES_STACK}
         component={ExpenseStackNavigator}
         options={{ tabBarLabel: 'Expenses' }}
-      />
-      <Tab.Screen
-        name={ROUTES.CLIENTS_STACK}
-        component={ClientStackNavigator}
-        options={{ tabBarLabel: 'Clients' }}
       />
       <Tab.Screen name={ROUTES.REPORTS} component={ReportsScreen} options={{ tabBarLabel: 'Reports' }} />
       <Tab.Screen name={ROUTES.SETTINGS_STACK} component={SettingsStackNavigator} options={{ tabBarLabel: 'Settings' }} />

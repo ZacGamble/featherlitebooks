@@ -39,7 +39,7 @@ export const InventoryDetailScreen: React.FC<InventoryDetailScreenProps> = ({ na
     //   setError((e as Error).message);
     // }
     // For now, using mock data
-    const MOCK_DETAIL_ITEM: InventoryItem = { id: itemId, name: `Item ${itemId} Name`, sku: `SKU${itemId}`, quantity: 50, unit_price: 19.99, category: 'Mock Category', vendor: 'Mock Vendor' };
+    const MOCK_DETAIL_ITEM: InventoryItem = { id: itemId, name: `Item ${itemId} Name`, sku: `SKU${itemId}`, quantity: 50, unit_price: 19.99, };
     setItem(MOCK_DETAIL_ITEM);
     setLoading(false);
   };
@@ -57,17 +57,6 @@ export const InventoryDetailScreen: React.FC<InventoryDetailScreenProps> = ({ na
           text: 'Delete',
           onPress: async () => {
             setLoading(true);
-            // try {
-            //   const { error: deleteError } = await supabase.from('inventory_items').delete().eq('id', itemId);
-            //   if (deleteError) throw deleteError;
-            //   Alert.alert('Success', 'Item deleted successfully.');
-            //   navigation.goBack();
-            // } catch (e) {
-            //   setError((e as Error).message);
-            //   Alert.alert('Error', 'Failed to delete item.');
-            // } finally {
-            //   setLoading(false);
-            // }
             Alert.alert('Mock Delete', `Simulated deletion for item ID: ${itemId}`);
             setLoading(false);
             navigation.goBack();
@@ -107,18 +96,6 @@ export const InventoryDetailScreen: React.FC<InventoryDetailScreenProps> = ({ na
                 <Text style={styles.detailLabel}>Unit Price:</Text>
                 <Text style={styles.detailValue}>${item.unit_price.toFixed(2)}</Text>
             </View>
-            {item.category && (
-                <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>Category:</Text>
-                    <Text style={styles.detailValue}>{item.category}</Text>
-                </View>
-            )}
-            {item.vendor && (
-                <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>Vendor:</Text>
-                    <Text style={styles.detailValue}>{item.vendor}</Text>
-                </View>
-            )}
         </Card>
 
         <Button 

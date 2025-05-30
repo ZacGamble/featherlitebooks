@@ -7,10 +7,9 @@ import Button from '@/components/common/Button/Button';
 import { ClientStackParamList } from './ClientListScreen'; // Re-use from ClientListScreen
 import { ROUTES } from '@/constants/routes';
 import { Client } from '@/types';
-import { useSupabase } from '@/hooks/useSupabase';
 import { useAuth } from '@/hooks/useAuth';
 import { colors } from '@/constants/colors';
-// import * as clientService from '@/api/clientService';
+import * as clientService from '@/api/clientService'; // Uncommented and will be used
 
 type ClientFormScreenProps = NativeStackScreenProps<ClientStackParamList, typeof ROUTES.CLIENT_FORM>;
 
@@ -21,13 +20,12 @@ export const ClientFormScreen: React.FC<ClientFormScreenProps> = ({ navigation, 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [address, setAddress] = useState('');
-  // Add other client fields as needed
+  const [addressLine1, setAddressLine1] = useState('');
+  // TODO: Add state for other address fields if needed (address_line2, city, state_province, postal_code, country)
 
   const [loading, setLoading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
-  const supabase = useSupabase();
   const { user } = useAuth();
 
   useEffect(() => {
@@ -39,65 +37,93 @@ export const ClientFormScreen: React.FC<ClientFormScreenProps> = ({ navigation, 
   const fetchClientDetails = async (id: string) => {
     setLoading(true);
     setFormError(null);
-    // TODO: Replace with actual API call from clientService.ts
-    // const { data, error } = await clientService.getClientById(id);
-    // if (error) { setFormError(error.message); setLoading(false); return; }
-    // if (data) {
-    //   setName(data.name);
-    //   setEmail(data.email || '');
-    //   setPhone(data.phone || '');
-    //   setAddress(data.address || '');
-    // }
-    const MOCK_EDIT_CLIENT: Client = { id: '1', name: 'Editing Global Corp', email: 'edit@globalcorp.com', phone: '555-0199', address: '123 Edit St', user_id: 'mock_user_id', value:'1', label: 'Editing Global Corp' }; // Ensure mock matches Client type
-    if (id === '1') { // Simulate finding an item
-        setName(MOCK_EDIT_CLIENT.name);
-        setEmail(MOCK_EDIT_CLIENT.email || '');
-        setPhone(MOCK_EDIT_CLIENT.phone || '');
-        setAddress(MOCK_EDIT_CLIENT.address || '');
-    } else {
-        setFormError('Client not found for editing (mock).');
+    try {
+      const { data, error } = await clientService.getClientById(id);
+      if (error) {
+        setFormError(error.message);
+        Alert.alert('Error', `Failed to fetch client details: ${error.message}`);
+        setLoading(false);
+        return;
+      }
+      if (data) {
+        setName(data.name);
+        setEmail(data.email || '');
+        setPhone(data.phone || '');
+        setAddressLine1(data.address_line1 || '');
+        // TODO: Set other address fields from data if they are added to state
+      } else {
+        setFormError('Client not found.');
+        Alert.alert('Error', 'Client not found.');
+      }
+    } catch (e) {
+      const err = e as Error;
+      setFormError(err.message);
+      Alert.alert('Error', `An unexpected error occurred: ${err.message}`);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleSubmit = async () => {
-    if (!name) {
+    if (!name.trim()) {
       setFormError('Client name is required.');
+      Alert.alert('Validation Error', 'Client name cannot be empty.');
       return;
     }
     if (!user) {
-        setFormError('User not authenticated. Cannot save client.');
-        return;
+      setFormError('User not authenticated. Cannot save client.');
+      Alert.alert('Authentication Error', 'You must be logged in to save a client.');
+      return;
     }
 
     setLoading(true);
     setFormError(null);
 
-    const clientData: Omit<Client, 'id' | 'value' | 'label'> & { user_id: string } = {
-      name,
-      email: email || null,
-      phone: phone || null,
-      address: address || null,
-      user_id: user.id,
-      // Add other fields from state here
+    // Prepare base data, common to create and update
+    const commonData = {
+      name: name.trim(),
+      email: email.trim() || null,
+      phone: phone.trim() || null,
+      address_line1: addressLine1.trim() || null,
+      // Set other address fields to null or their state values if added
+      address_line2: null,
+      city: null,
+      state_province: null,
+      postal_code: null,
+      country: null,
     };
 
-    // try {
-    //   if (isEditing && clientId) {
-    //     await clientService.updateClient(clientId, clientData);
-    //   } else {
-    //     await clientService.addClient(clientData as Omit<Client, 'id'>); // Cast if addClient expects no user_id in its direct param type but table needs it
-    //   }
-    //   Alert.alert('Success', `Client ${isEditing ? 'updated' : 'added'} successfully.`);
-    //   navigation.goBack();
-    // } catch (e) {
-    //   setFormError((e as Error).message);
-    // } finally {
-    //   setLoading(false);
-    // }
-    Alert.alert('Mock Submit', `Simulated ${isEditing ? 'update' : 'add'} for client: ${name}`);
-    setLoading(false);
-    navigation.goBack();
+    try {
+      if (isEditing && clientId) {
+        // For update, user_id is not part of the payload to clientService.updateClient
+        const payload: Partial<Omit<Client, 'id' | 'user_id' | 'created_at' | 'updated_at'>> = commonData;
+        const { data, error } = await clientService.updateClient(clientId, payload);
+        if (error) throw error;
+        if (data) {
+          Alert.alert('Success', `Client "${data.name}" updated successfully.`);
+          navigation.goBack();
+        }
+      } else {
+        // For create, user_id is required.
+        const payload: Omit<Client, 'id' | 'created_at' | 'updated_at'> = {
+          ...commonData,
+          user_id: user.id,
+        };
+        const { data, error } = await clientService.createClient(payload);
+        if (error) throw error;
+        if (data) {
+          Alert.alert('Success', `Client "${data.name}" added successfully.`);
+          // Optionally navigate to the new client's detail screen or refresh list
+          navigation.goBack(); 
+        }
+      }
+    } catch (e) {
+      const err = e as Error;
+      setFormError(err.message);
+      Alert.alert('Save Error', `Failed to save client: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (loading && isEditing && !name) { 
@@ -106,7 +132,7 @@ export const ClientFormScreen: React.FC<ClientFormScreenProps> = ({ navigation, 
 
   return (
     <ScreenContainer scrollable>
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         <Text style={styles.title}>{isEditing ? 'Edit Client' : 'Add New Client'}</Text>
         
         {formError && <Text style={styles.errorText}>{formError}</Text>}
@@ -114,13 +140,20 @@ export const ClientFormScreen: React.FC<ClientFormScreenProps> = ({ navigation, 
         <Input label="Client Name *" value={name} onChangeText={setName} placeholder="e.g., Acme Corp" />
         <Input label="Email Address" value={email} onChangeText={setEmail} placeholder="e.g., contact@acme.com" keyboardType="email-address" autoCapitalize="none" />
         <Input label="Phone Number" value={phone} onChangeText={setPhone} placeholder="e.g., 555-123-4567" keyboardType="phone-pad" />
-        <Input label="Address" value={address} onChangeText={setAddress} placeholder="e.g., 123 Main St, Anytown" multiline />
-        {/* Add more Input fields for other client properties */}
+        <Input label="Address Line 1" value={addressLine1} onChangeText={setAddressLine1} placeholder="e.g., 123 Main St" />
+        {/* 
+          TODO: Add Input fields for other client address properties if desired:
+          <Input label="Address Line 2" value={addressLine2} onChangeText={setAddressLine2} placeholder="e.g., Suite 100" />
+          <Input label="City" value={city} onChangeText={setCity} placeholder="e.g., Anytown" />
+          <Input label="State/Province" value={stateProvince} onChangeText={setStateProvince} placeholder="e.g., CA" />
+          <Input label="Postal Code" value={postalCode} onChangeText={setPostalCode} placeholder="e.g., 90210" />
+          <Input label="Country" value={country} onChangeText={setCountry} placeholder="e.g., USA" />
+        */}
 
         <Button 
           title={isEditing ? 'Save Changes' : 'Add Client'} 
           onPress={handleSubmit} 
-          loading={loading && !isEditing} 
+          loading={loading && !isEditing} // Show loading on button only when submitting new, not when initially loading edit form
           style={styles.submitButton} 
         />
         <Button 
@@ -128,6 +161,7 @@ export const ClientFormScreen: React.FC<ClientFormScreenProps> = ({ navigation, 
           onPress={() => navigation.goBack()} 
           variant="outline" 
           style={styles.cancelButton}
+          disabled={loading} // Disable cancel if an operation is in progress
         />
       </ScrollView>
     </ScreenContainer>

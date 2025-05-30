@@ -13,7 +13,7 @@ import { colors } from '@/constants/colors';
 type InvoiceDetailScreenProps = NativeStackScreenProps<InvoiceStackParamList, typeof ROUTES.INVOICE_DETAIL>;
 
 // Mock client data for detail view
-const MOCK_CLIENT_DETAIL: Client = { id: '1', name: 'Client Alpha Deluxe', email: 'alpha@example.com', phone: '555-1234' };
+const MOCK_CLIENT_DETAIL: Client = { id: '1', name: 'Client Alpha Deluxe', email: 'alpha@example.com', phone: '555-1234', user_id: '1', created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
 
 // Helper function for status color
 const getStatusColor = (status: Invoice['status']) => {
@@ -40,14 +40,18 @@ export const InvoiceDetailScreen: React.FC<InvoiceDetailScreenProps> = ({ naviga
     // Mock fetch, join with client for display
     const MOCK_DETAIL_INVOICE: Invoice = {
       id: invoiceId,
+      user_id: '1',
+      currency: 'USD',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
       invoice_number: `INV-2024-${invoiceId.padStart(3, '0')}`,
       client_id: '1',
       client: MOCK_CLIENT_DETAIL,
-      date: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
+      issue_date: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
       due_date: new Date(Date.now() + Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
       line_items: [
-        { id: 'li_detail_1', product_service_description: 'Detailed Service A', quantity: 2, unit_price: 75, total: 150 },
-        { id: 'li_detail_2', product_service_description: 'Product B (Detailed)', quantity: 1, unit_price: 120, total: 120 },
+        { id: 'li_detail_1', description: 'Detailed Service A', quantity: 2, unit_price: 75, total_price: 150, invoice_id: invoiceId, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+        { id: 'li_detail_2', description: 'Product B (Detailed)', quantity: 1, unit_price: 120, total_price: 120, invoice_id: invoiceId, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
       ],
       subtotal: 270,
       tax_amount: 27, // Example tax
@@ -88,10 +92,10 @@ export const InvoiceDetailScreen: React.FC<InvoiceDetailScreenProps> = ({ naviga
 
   const renderLineItem = ({ item }: { item: InvoiceLineItem }) => (
     <View style={styles.lineItemRow}>
-      <Text style={styles.lineItemDescription}>{item.product_service_description}</Text>
+      <Text style={styles.lineItemDescription}>{item.description}</Text>
       <Text style={styles.lineItemQty}>{item.quantity}</Text>
       <Text style={styles.lineItemPrice}>${item.unit_price.toFixed(2)}</Text>
-      <Text style={styles.lineItemTotal}>${item.total.toFixed(2)}</Text>
+      <Text style={styles.lineItemTotal}>${item.total_price.toFixed(2)}</Text>
     </View>
   );
 
@@ -110,7 +114,7 @@ export const InvoiceDetailScreen: React.FC<InvoiceDetailScreenProps> = ({ naviga
           )}
           <View style={styles.dateRow}>
             <Text style={styles.dateLabel}>Date Issued:</Text>
-            <Text style={styles.dateValue}>{new Date(invoice.date).toLocaleDateString()}</Text>
+            <Text style={styles.dateValue}>{new Date(invoice.issue_date).toLocaleDateString()}</Text>
           </View>
           <View style={styles.dateRow}>
             <Text style={styles.dateLabel}>Due Date:</Text>
@@ -138,7 +142,6 @@ export const InvoiceDetailScreen: React.FC<InvoiceDetailScreenProps> = ({ naviga
           <Text style={styles.sectionTitle}>Summary</Text>
           <View style={styles.summaryRow}><Text>Subtotal:</Text><Text>${invoice.subtotal.toFixed(2)}</Text></View>
           {invoice.tax_amount && <View style={styles.summaryRow}><Text>Tax:</Text><Text>${invoice.tax_amount.toFixed(2)}</Text></View>}
-          {invoice.discount_amount && <View style={styles.summaryRow}><Text>Discount:</Text><Text>-${invoice.discount_amount.toFixed(2)}</Text></View>}
           <View style={[styles.summaryRow, styles.totalRow]}><Text style={styles.totalText}>Total Amount:</Text><Text style={styles.totalText}>${invoice.total_amount.toFixed(2)}</Text></View>
         </Card>
 

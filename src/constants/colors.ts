@@ -15,6 +15,8 @@ export const colors = {
   darkGray: '#3A3A3C',
   white: '#FFFFFF',
   black: '#000000',
+  inputBackground: '#EFEFF4', // A light gray, slightly different from F2F2F7 background
+  errorBackground: '#FFDDE0', // A light red for error message backgrounds
   // Add more specific colors based on FeatherLiteBooks branding
   // e.g. featherLiteBlue, featherLiteGreen
 }; 

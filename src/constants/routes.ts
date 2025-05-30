@@ -10,32 +10,33 @@ export const ROUTES = {
   // App Tabs (Main Authenticated Routes)
   APP_TABS: 'AppTabs',
   DASHBOARD: 'Dashboard',
+  CLIENTS_STACK: 'ClientsStack',
+  INVENTORY_TAB: 'InventoryTab',
   INVENTORY_STACK: 'InventoryStack',
   INVOICES_STACK: 'InvoicesStack',
   EXPENSES_STACK: 'ExpensesStack',
   REPORTS: 'Reports',
-  SETTINGS_STACK: 'SettingsStack', // Renamed from SETTINGS_TAB_STACK
+  SETTINGS_STACK: 'SettingsStack',
+
+  // Client Management Stack
+  CLIENT_LIST: 'ClientList',
+  CLIENT_DETAIL: 'ClientDetail',
+  CLIENT_FORM: 'ClientForm',
 
   // Inventory Stack (within AppTabs)
   INVENTORY_LIST: 'InventoryList',
-  INVENTORY_FORM: 'InventoryForm', // For Add/Edit
-  INVENTORY_DETAIL: 'InventoryDetail',
+  INVENTORY_ITEM_FORM: 'InventoryItemForm',
+  INVENTORY_ITEM_DETAIL: 'InventoryItemDetail',
 
   // Invoices Stack (within AppTabs)
   INVOICE_LIST: 'InvoiceList',
-  INVOICE_FORM: 'InvoiceForm', // For Add/Edit
+  INVOICE_FORM: 'InvoiceForm',
   INVOICE_DETAIL: 'InvoiceDetail',
 
   // Expenses Stack (within AppTabs)
   EXPENSE_LIST: 'ExpenseList',
-  EXPENSE_FORM: 'ExpenseForm', // For Add/Edit
+  EXPENSE_FORM: 'ExpenseForm',
   EXPENSE_DETAIL: 'ExpenseDetail',
-
-  // Client Management Stack (New)
-  CLIENTS_STACK: 'ClientsStack',
-  CLIENT_LIST: 'ClientList',
-  CLIENT_DETAIL: 'ClientDetail',
-  CLIENT_FORM: 'ClientForm',
 
   // Settings (Can be a top-level screen in a stack or a screen within a tab)
   SETTINGS: 'Settings',

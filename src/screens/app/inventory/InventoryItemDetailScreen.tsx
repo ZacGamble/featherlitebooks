@@ -1,45 +1,43 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
 import ScreenContainer from '@/components/layout/ScreenContainer';
 import Button from '@/components/common/Button/Button';
-import { ClientStackParamList } from './ClientListScreen';
+import { InventoryStackParamList } from '@/navigation/InventoryStack';
 import { ROUTES } from '@/constants/routes';
-import { Client } from '@/types';
+import { InventoryItem } from '@/types';
 import { colors } from '@/constants/colors';
-import * as clientService from '@/api/clientService';
+import * as inventoryService from '@/api/inventoryService';
 import { Ionicons } from '@expo/vector-icons';
-import { useAuth } from '@/hooks/useAuth';
 
-type ClientDetailScreenProps = NativeStackScreenProps<ClientStackParamList, typeof ROUTES.CLIENT_DETAIL>;
+type Props = NativeStackScreenProps<InventoryStackParamList, typeof ROUTES.INVENTORY_ITEM_DETAIL>;
 
-export const ClientDetailScreen: React.FC<ClientDetailScreenProps> = ({ navigation, route }) => {
-  const { clientId } = route.params;
-  const { user } = useAuth();
+export const InventoryItemDetailScreen: React.FC<Props> = ({ navigation, route }) => {
+  const { itemId } = route.params;
 
-  const [client, setClient] = useState<Client | null>(null);
+  const [item, setItem] = useState<InventoryItem | null>(null);
   const [loading, setLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState(false); // For button-specific loading
+  const [actionLoading, setActionLoading] = useState(false); 
   const [error, setError] = useState<string | null>(null);
 
-  const fetchClientDetails = useCallback(async () => {
-    if (!clientId) {
-      setError('Client ID is missing.');
+  const fetchItemDetails = useCallback(async () => {
+    if (!itemId) {
+      setError('Item ID is missing.');
       setLoading(false);
       return;
     }
     setLoading(true);
-    setActionLoading(false); // Reset action loading too
+    setActionLoading(false);
     setError(null);
     try {
-      const { data, error: fetchError } = await clientService.getClientById(clientId);
+      const { data, error: fetchError } = await inventoryService.getInventoryItemById(itemId);
       if (fetchError) {
         setError(fetchError.message);
       } else if (data) {
-        setClient(data);
+        setItem(data);
       } else {
-        setError('Client not found.');
+        setError('Inventory item not found.');
       }
     } catch (e) {
       const err = e as Error;
@@ -47,66 +45,42 @@ export const ClientDetailScreen: React.FC<ClientDetailScreenProps> = ({ navigati
     } finally {
       setLoading(false);
     }
-  }, [clientId]);
+  }, [itemId]);
 
   useFocusEffect(
     useCallback(() => {
-      fetchClientDetails();
-    }, [fetchClientDetails])
+      fetchItemDetails();
+    }, [fetchItemDetails])
   );
 
   const handleEdit = () => {
-    if (client) {
-      navigation.navigate(ROUTES.CLIENT_FORM, { clientId: client.id });
+    if (item) {
+      navigation.navigate(ROUTES.INVENTORY_ITEM_FORM, { itemId: item.id });
     }
   };
 
   const handleDelete = async () => {
-    if (!client) {
-      console.log('Delete attempted but no client data available.');
-      return;
-    }
-    if (!user) {
-      console.log('Delete attempted but no authenticated user available.');
-      // Using window.alert for simple error message
-      window.alert('User not authenticated. Cannot delete client.');
-      return;
-    }
+    if (!item) return;
 
-    console.log(`Attempting to delete client with ID: ${client.id} by user ID: ${user.id}`);
-
-    // Using window.confirm for confirmation
-    const confirmed = window.confirm(`Are you sure you want to delete "${client.name}"? This action cannot be undone.`);
-
+    const confirmed = window.confirm(`Are you sure you want to delete "${item.name}"? This action cannot be undone.`);
     if (confirmed) {
       setActionLoading(true);
       try {
-        console.log('User confirmed. Calling clientService.deleteClient...');
-        const { error: deleteError } = await clientService.deleteClient(client.id);
-        
+        const { error: deleteError } = await inventoryService.deleteInventoryItem(item.id);
         if (deleteError) {
-          console.error('Error deleting client:', JSON.stringify(deleteError, null, 2));
           setError(deleteError.message);
-          // Using window.alert for error message
-          window.alert(`Delete Error: ${deleteError.message} (Code: ${deleteError.code})`);
+          window.alert(`Delete Error: ${deleteError.message}`);
         } else {
-          console.log('Client deleted successfully from service.');
-          // Using window.alert for success message
-          window.alert(`Client "${client.name}" deleted successfully.`);
+          window.alert(`Item "${item.name}" deleted successfully.`);
           navigation.goBack(); 
         }
       } catch (e) {
         const err = e as Error;
-        console.error('Exception during delete process:', err);
         setError(err.message);
-        // Using window.alert for error message
         window.alert(`Delete Error: An unexpected error occurred: ${err.message}`);
       } finally {
         setActionLoading(false);
-        console.log('Delete action finished.');
       }
-    } else {
-      console.log('User cancelled delete action.');
     }
   };
 
@@ -114,27 +88,27 @@ export const ClientDetailScreen: React.FC<ClientDetailScreenProps> = ({ navigati
     return (
       <ScreenContainer style={styles.centerAlign}>
         <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={styles.messageText}>Loading client details...</Text>
+        <Text style={styles.messageText}>Loading item details...</Text>
       </ScreenContainer>
     );
   }
 
-  if (error && !client) {
+  if (error && !item) {
     return (
       <ScreenContainer style={styles.centerAlign}>
         <Ionicons name="alert-circle-outline" size={48} color={colors.error} />
         <Text style={styles.messageText}>{error}</Text>
-        <Button title="Retry" onPress={fetchClientDetails} />
+        <Button title="Retry" onPress={fetchItemDetails} />
         <Button title="Go Back" onPress={() => navigation.goBack()} variant="outline" style={{marginTop: 10}} />
       </ScreenContainer>
     );
   }
 
-  if (!client) {
+  if (!item) {
     return (
       <ScreenContainer style={styles.centerAlign}>
         <Ionicons name="help-circle-outline" size={48} color={colors.textSecondary} />
-        <Text style={styles.messageText}>Client not found.</Text>
+        <Text style={styles.messageText}>Item not found.</Text>
         <Button title="Go Back" onPress={() => navigation.goBack()} />
       </ScreenContainer>
     );
@@ -146,37 +120,33 @@ export const ClientDetailScreen: React.FC<ClientDetailScreenProps> = ({ navigati
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back-outline" size={28} color={colors.primary} />
         </TouchableOpacity>
-        {/* Optionally, add a title here if needed */}
       </View>
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.headerSection}>
-          <Ionicons name="person-circle-outline" size={80} color={colors.primary} />
-          <Text style={styles.clientName}>{client.name}</Text>
+          <Ionicons name="cube-outline" size={80} color={colors.primary} />
+          <Text style={styles.itemName}>{item.name}</Text>
+          {item.sku && <Text style={styles.itemSku}>SKU: {item.sku}</Text>}
         </View>
 
         {error && <Text style={[styles.messageText, styles.inlineError]}>{error}</Text>} 
 
         <View style={styles.detailCard}>
-          <DetailItem label="Email" value={client.email} iconName="mail-outline" />
-          <DetailItem label="Phone" value={client.phone} iconName="call-outline" />
-          <DetailItem label="Address Line 1" value={client.address_line1} iconName="location-outline" />
-          {client.address_line2 && <DetailItem label="Address Line 2" value={client.address_line2} iconName="business-outline" />}
-          {client.city && <DetailItem label="City" value={client.city} iconName="map-outline" />}
-          {client.state_province && <DetailItem label="State/Province" value={client.state_province} iconName="map-outline" />}
-          {client.postal_code && <DetailItem label="Postal Code" value={client.postal_code} iconName="map-outline" />}
-          {client.country && <DetailItem label="Country" value={client.country} iconName="flag-outline" />}
+          <DetailItem label="Description" value={item.description} iconName="document-text-outline" />
+          <DetailItem label="Quantity on Hand" value={item.quantity_on_hand.toString()} iconName="file-tray-stacked-outline" />
+          <DetailItem label="Unit Price" value={`$${item.unit_price.toFixed(2)}`} iconName="cash-outline" />
+          <DetailItem label="Low Stock Threshold" value={item.low_stock_threshold?.toString()} iconName="stats-chart-outline" />
         </View>
         
         <View style={styles.actionsContainer}>
           <Button 
-            title="Edit Client" 
+            title="Edit Item" 
             onPress={handleEdit} 
             style={styles.actionButton} 
             iconLeft={<Ionicons name="pencil-outline" size={18} color={colors.white} />}
             disabled={actionLoading}
           />
           <Button 
-            title="Delete Client" 
+            title="Delete Item" 
             onPress={handleDelete} 
             variant="danger" 
             style={styles.actionButton} 
@@ -184,12 +154,6 @@ export const ClientDetailScreen: React.FC<ClientDetailScreenProps> = ({ navigati
             loading={actionLoading}
           />
         </View>
-
-        {/* Placeholder for related items like invoices or projects */}
-        {/* <View style={styles.relatedInfoCard}>
-          <Text style={styles.sectionTitle}>Related Invoices</Text>
-          <Text style={styles.placeholderText}>Invoices for this client will appear here.</Text>
-        </View> */}
       </ScrollView>
     </ScreenContainer>
   );
@@ -202,7 +166,7 @@ interface DetailItemProps {
 }
 
 const DetailItem: React.FC<DetailItemProps> = ({ label, value, iconName }) => {
-  if (!value) return null;
+  if (value === null || value === undefined || value === '') return null;
   return (
     <View style={styles.detailItemContainer}>
       <Ionicons name={iconName} size={20} color={colors.primary} style={styles.detailIcon} />
@@ -225,7 +189,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 10,
-    paddingTop: 10,
+    paddingTop: 10, 
   },
   backButton: {
     padding: 5, 
@@ -240,12 +204,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
-  clientName: {
+  itemName: {
     fontSize: 24,
     fontWeight: 'bold',
     color: colors.text,
     marginTop: 10,
     textAlign: 'center',
+  },
+  itemSku: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: 5,
   },
   detailCard: {
     backgroundColor: colors.surface,
@@ -265,9 +235,6 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
-  },
-  detailItemContainerLast: {
-    borderBottomWidth: 0,
   },
   detailIcon: {
     marginRight: 15,
@@ -304,24 +271,6 @@ const styles = StyleSheet.create({
     color: colors.error,
     marginBottom: 15,
   },
-  // relatedInfoCard: {
-  //   marginTop: 20,
-  //   padding: 15,
-  //   backgroundColor: colors.surface,
-  //   borderRadius: 8,
-  // },
-  // sectionTitle: {
-  //   fontSize: 18,
-  //   fontWeight: 'bold',
-  //   marginBottom: 10,
-  //   color: colors.text,
-  // },
-  // placeholderText: {
-  //   fontSize: 14,
-  //   color: colors.textSecondary,
-  //   textAlign: 'center',
-  //   paddingVertical: 10,
-  // },
 });
 
-export default ClientDetailScreen; 
+export default InventoryItemDetailScreen; 
