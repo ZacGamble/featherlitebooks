@@ -1,143 +1,90 @@
 import React from 'react';
-import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs'; // Added
-import { createNativeStackNavigator, NativeStackNavigationOptions } from '@react-navigation/native-stack';
-import { ROUTES } from '@/constants/routes';
-import DashboardScreen from '@/screens/app/DashboardScreen';
-import ReportsScreen from '@/screens/app/ReportsScreen';
-import SettingsScreen from '@/screens/app/SettingsScreen';
-import ProfileScreen from '@/screens/app/ProfileScreen';
-
-// Remove these Inventory screen imports if they are only used by the local InventoryStack we are removing
-// import InventoryListScreen from '@/screens/app/inventory/InventoryListScreen';
-// import InventoryFormScreen from '@/screens/app/inventory/InventoryFormScreen';
-// import InventoryDetailScreen from '@/screens/app/inventory/InventoryDetailScreen';
-
-import { InvoiceListScreen, InvoiceDetailScreen, InvoiceFormScreen } from '@/screens/app/invoices';
-import ExpenseListScreen from '@/screens/app/expenses/ExpenseListScreen';
-import ExpenseDetailScreen from '@/screens/app/expenses/ExpenseDetailScreen';
-import ExpenseFormScreen from '@/screens/app/expenses/ExpenseFormScreen';
-
+import { createMaterialTopTabNavigator, MaterialTopTabNavigationOptions } from '@react-navigation/material-top-tabs';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/constants/colors';
-import { ClientListScreen, ClientStackParamList } from '@/screens/app/clients/ClientListScreen';
-import { ClientDetailScreen } from '@/screens/app/clients/ClientDetailScreen';
-import { ClientFormScreen } from '@/screens/app/clients/ClientFormScreen';
-import { NavigatorScreenParams } from '@react-navigation/native';
+import { ROUTES } from '@/constants/routes';
 
-// Import the new InventoryStack and its ParamList
-import { InventoryStack, InventoryStackParamList } from './InventoryStack';
-// Import the new InvoiceStack and its ParamList
-import { InvoiceStack, InvoiceStackParamList } from './InvoiceStack';
+// Import Stacks
+import { ClientStack } from './ClientStack'; // Assuming ClientStackParamList is not directly needed here
+import { InventoryStack } from './InventoryStack';
+import { InvoiceStack } from './InvoiceStack';
+import { ExpenseStack } from './ExpenseStack'; // Added ExpenseStack import
+import DashboardScreen from '@/screens/app/DashboardScreen'; // Uncommented and corrected import
+// import { ReportsScreen } from '@/screens/app/ReportsScreen'; // Reports still commented out
+import { SettingsStack } from './SettingsStack'; // Uncommented and corrected import (named)
 
-const defaultStackScreenOptions: NativeStackNavigationOptions = {
-  headerShown: false,
+// Placeholder/Example for other stacks/screens if needed
+// import { DashboardScreen } from '@/screens/app/DashboardScreen';
+// import { ReportsScreen } from '@/screens/app/ReportsScreen';
+// import { SettingsStack } from './SettingsStack';
+
+// Define ParamLists for each stack that might be needed by the Tab Navigator directly
+// If the stacks manage their own params internally and the tab only navigates to the stack itself,
+// explicit param lists here might not be necessary beyond `undefined` or NavigatorScreenParams.
+// For simplicity, if AppTabs only routes to the *Stack* and not specific screens *within* the stack,
+// we can simplify. However, if we need to pass params *to* the stack or its initial screen from AppTabs,
+// then we'd use NavigatorScreenParams<ClientStackParamList> etc.
+
+export type AppTabsParamList = {
+  [ROUTES.DASHBOARD]: undefined; // Uncommented
+  [ROUTES.CLIENTS_STACK]: undefined; // Navigates to the ClientStack navigator
+  [ROUTES.INVENTORY_STACK]: undefined; // Navigates to the InventoryStack navigator
+  [ROUTES.INVOICES_STACK]: undefined; // Navigates to the InvoiceStack navigator
+  [ROUTES.EXPENSES_STACK]: undefined; // Navigates to the ExpenseStack navigator
+  // [ROUTES.REPORTS]: undefined; // Reports still commented out
+  [ROUTES.SETTINGS_STACK]: undefined; // Uncommented
 };
 
-// Define ParamList for each stack within the tabs
-// REMOVE aaaaaall of this old InventoryStack specific code
-/*
-export type InventoryStackParamList = {
-  [ROUTES.INVENTORY_LIST]: undefined;
-  [ROUTES.INVENTORY_FORM]: { itemId?: string }; // Make sure INVENTORY_FORM is correct route name
-  [ROUTES.INVENTORY_DETAIL]: { itemId: string }; // Make sure INVENTORY_DETAIL is correct route name
-};
-const InventoryStack = createNativeStackNavigator<InventoryStackParamList>();
-const InventoryStackNavigator = () => (
-  <InventoryStack.Navigator screenOptions={defaultStackScreenOptions}>
-    <InventoryStack.Screen name={ROUTES.INVENTORY_LIST} component={InventoryListScreen} />
-    <InventoryStack.Screen name={ROUTES.INVENTORY_FORM} component={InventoryFormScreen} />
-    <InventoryStack.Screen name={ROUTES.INVENTORY_DETAIL} component={InventoryDetailScreen} />
-  </InventoryStack.Navigator>
-);
-*/
+const Tab = createMaterialTopTabNavigator<AppTabsParamList>();
 
-export type ExpenseStackParamList = {
-  [ROUTES.EXPENSE_LIST]: undefined;
-  [ROUTES.EXPENSE_DETAIL]: { expenseId: string };
-  [ROUTES.EXPENSE_FORM]: { expenseId?: string };
-};
-const ExpenseStackNav = createNativeStackNavigator<ExpenseStackParamList>();
-const ExpenseStackNavigator = () => (
-  <ExpenseStackNav.Navigator screenOptions={defaultStackScreenOptions}>
-    <ExpenseStackNav.Screen name={ROUTES.EXPENSE_LIST} component={ExpenseListScreen} />
-    <ExpenseStackNav.Screen name={ROUTES.EXPENSE_FORM} component={ExpenseFormScreen} />
-    <ExpenseStackNav.Screen name={ROUTES.EXPENSE_DETAIL} component={ExpenseDetailScreen} />
-  </ExpenseStackNav.Navigator>
-);
+const AppTabs: React.FC = () => {
+  const insets = useSafeAreaInsets();
 
-export type SettingsStackParamList = {
-    [ROUTES.SETTINGS]: undefined;
-    [ROUTES.PROFILE]: undefined;
-};
-const SettingsNavigatorStack = createNativeStackNavigator<SettingsStackParamList>();
-const SettingsStackNavigator = () => (
-    <SettingsNavigatorStack.Navigator screenOptions={defaultStackScreenOptions}>
-        <SettingsNavigatorStack.Screen name={ROUTES.SETTINGS} component={SettingsScreen} />
-        <SettingsNavigatorStack.Screen name={ROUTES.PROFILE} component={ProfileScreen} />
-    </SettingsNavigatorStack.Navigator>
-);
+  const screenOptions: MaterialTopTabNavigationOptions = {
+    tabBarLabelStyle: { fontSize: 10, fontWeight: '500', textTransform: 'uppercase', textAlign: 'center' },
+    tabBarItemStyle: { flex: 1 }, // Ensure tabs take equal width
+    tabBarIndicatorStyle: { backgroundColor: colors.primary },
+    tabBarActiveTintColor: colors.primary,
+    tabBarInactiveTintColor: colors.textSecondary,
+    tabBarStyle: {
+      backgroundColor: colors.surface,
+      paddingTop: insets.top, // Adjust for status bar
+    },
+    tabBarScrollEnabled: false, // Ensure all tabs are visible
+  };
 
-const ClientStackNav = createNativeStackNavigator<ClientStackParamList>();
-const ClientStackNavigator = () => (
-  <ClientStackNav.Navigator screenOptions={defaultStackScreenOptions}>
-    <ClientStackNav.Screen name={ROUTES.CLIENT_LIST} component={ClientListScreen} />
-    <ClientStackNav.Screen name={ROUTES.CLIENT_DETAIL} component={ClientDetailScreen} />
-    <ClientStackNav.Screen name={ROUTES.CLIENT_FORM} component={ClientFormScreen} />
-  </ClientStackNav.Navigator>
-);
-
-export type AppTabParamList = {
-  [ROUTES.DASHBOARD]: undefined;
-  [ROUTES.CLIENTS_STACK]: NavigatorScreenParams<ClientStackParamList>;
-  [ROUTES.INVENTORY_TAB]: NavigatorScreenParams<InventoryStackParamList>;
-  [ROUTES.INVOICES_STACK]: NavigatorScreenParams<InvoiceStackParamList>;
-  [ROUTES.EXPENSES_STACK]: NavigatorScreenParams<ExpenseStackParamList>;
-  [ROUTES.REPORTS]: undefined;
-  [ROUTES.SETTINGS_STACK]: NavigatorScreenParams<SettingsStackParamList>;
-};
-
-// const Tab = createBottomTabNavigator<AppTabParamList>(); // Changed
-const Tab = createMaterialTopTabNavigator<AppTabParamList>(); // Added
-
-const AppTabs = () => {
   return (
     <Tab.Navigator
-      screenOptions={{
-        tabBarActiveTintColor: colors.primary || '#007AFF',
-        tabBarInactiveTintColor: colors.gray || '#8E8E93',
-        tabBarStyle: { backgroundColor: colors.white || '#FFFFFF' },
-        tabBarScrollEnabled: false, // Changed to false to prevent scrolling
-        tabBarIndicatorStyle: { backgroundColor: colors.primary || '#007AFF' },
-        tabBarItemStyle: { flex: 1 }, // Changed from width: 'auto' to flex: 1
-        tabBarLabelStyle: { fontSize: 10, textTransform: 'none', textAlign: 'center' }, // Added textAlign: center
-        // The following might help with centering if items don't fill width
-        // but MaterialTopTabNavigator might handle distribution automatically when scroll is off.
-        // tabBarContentContainerStyle: { alignItems: 'center', justifyContent: 'center' } 
-      }}
+      initialRouteName={ROUTES.DASHBOARD} // Changed default to Dashboard
+      screenOptions={({ route }) => ({
+        ...screenOptions, // Apply the base screenOptions
+        tabBarIcon: ({ focused, color }) => {
+          // Simplified icon logic for debugging
+          let iconName: keyof typeof Ionicons.glyphMap = 'ellipse-outline'; // Default icon
+          if (route.name === ROUTES.DASHBOARD) {
+            iconName = focused ? 'speedometer' : 'speedometer-outline';
+          } else if (route.name === ROUTES.CLIENTS_STACK) {
+            iconName = focused ? 'people' : 'people-outline';
+          } else if (route.name === ROUTES.INVENTORY_STACK) {
+            iconName = focused ? 'cube' : 'cube-outline';
+          } else if (route.name === ROUTES.INVOICES_STACK) {
+            iconName = focused ? 'document-text' : 'document-text-outline';
+          } else if (route.name === ROUTES.EXPENSES_STACK) {
+            iconName = focused ? 'wallet' : 'wallet-outline';
+          } else if (route.name === ROUTES.SETTINGS_STACK) {
+            iconName = focused ? 'settings' : 'settings-outline';
+          }
+          return <Ionicons name={iconName} size={22} color={color} />;
+        },
+      })}
     >
-      <Tab.Screen name={ROUTES.DASHBOARD} component={DashboardScreen} options={{ tabBarLabel: 'Dashboard' }} />
-      <Tab.Screen
-        name={ROUTES.CLIENTS_STACK}
-        component={ClientStackNavigator}
-        options={{ tabBarLabel: 'Clients' }}
-      />
-      <Tab.Screen 
-        name={ROUTES.INVENTORY_TAB} 
-        component={InventoryStack}
-        options={{ tabBarLabel: 'Inventory' }} 
-      />
-      <Tab.Screen 
-        name={ROUTES.INVOICES_STACK} 
-        component={InvoiceStack}
-        options={{ tabBarLabel: 'Invoices' }} 
-      />
-      <Tab.Screen
-        name={ROUTES.EXPENSES_STACK}
-        component={ExpenseStackNavigator}
-        options={{ tabBarLabel: 'Expenses' }}
-      />
-      <Tab.Screen name={ROUTES.REPORTS} component={ReportsScreen} options={{ tabBarLabel: 'Reports' }} />
-      <Tab.Screen name={ROUTES.SETTINGS_STACK} component={SettingsStackNavigator} options={{ tabBarLabel: 'Settings' }} />
+      <Tab.Screen name={ROUTES.DASHBOARD} component={DashboardScreen} options={{ title: 'Dashboard' }} />
+      <Tab.Screen name={ROUTES.CLIENTS_STACK} component={ClientStack} options={{ title: 'Clients' }} />
+      <Tab.Screen name={ROUTES.INVENTORY_STACK} component={InventoryStack} options={{ title: 'Inventory' }} />
+      <Tab.Screen name={ROUTES.INVOICES_STACK} component={InvoiceStack} options={{ title: 'Invoices' }} />
+      <Tab.Screen name={ROUTES.EXPENSES_STACK} component={ExpenseStack} options={{ title: 'Expenses' }} />
+      <Tab.Screen name={ROUTES.SETTINGS_STACK} component={SettingsStack} options={{ title: 'Settings' }} />
     </Tab.Navigator>
   );
 };

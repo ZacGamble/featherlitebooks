@@ -1,126 +1,195 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, RefreshControl, TextInput, TouchableOpacity } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import ScreenContainer from '@/components/layout/ScreenContainer';
-import ListItem from '@/components/common/ListItem/ListItem';
-import Button from '@/components/common/Button/Button';
-import { ExpenseStackParamList } from '@/navigation/AppTabs';
-import { ROUTES } from '@/constants/routes';
-import { Expense } from '@/types';
-import { useSupabase } from '@/hooks/useSupabase';
-import { useAuth } from '@/hooks/useAuth';
-import { colors } from '@/constants/colors';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import ScreenContainer from '@/components/layout/ScreenContainer';
+import Button from '@/components/common/Button/Button';
+import ListItem from '@/components/common/ListItem/ListItem';
+import { Expense } from '@/types';
+import { ExpenseStackParamList } from '@/navigation/ExpenseStack';
+import { ROUTES } from '@/constants/routes';
+import { colors } from '@/constants/colors';
+import * as expenseService from '@/api/expenseService';
+import { useAuth } from '@/auth/AuthContext';
+import { format, parseISO } from 'date-fns';
 
-type ExpenseListScreenProps = NativeStackScreenProps<ExpenseStackParamList, typeof ROUTES.EXPENSE_LIST>;
+type Props = NativeStackScreenProps<ExpenseStackParamList, typeof ROUTES.EXPENSE_LIST>;
 
-const MOCK_EXPENSES: Expense[] = [
-  { id: '1', expense_name: 'Office Supplies', category: 'Office', amount: 75.50, date: new Date().toISOString(), vendor: 'Staples' },
-  { id: '2', expense_name: 'Software Subscription', category: 'Software', amount: 29.99, date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(), vendor: 'SaaS Co.' },
-  { id: '3', expense_name: 'Travel - Client Meeting', category: 'Travel', amount: 150.00, date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), vendor: 'Airline X' },
-];
-
-export const ExpenseListScreen: React.FC<ExpenseListScreenProps> = ({ navigation }) => {
-  const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterVisible, setFilterVisible] = useState(false);
-
-  const supabase = useSupabase();
+export const ExpenseListScreen: React.FC<Props> = ({ navigation }) => {
   const { user } = useAuth();
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
-  useEffect(() => {
-    fetchExpenses();
-  }, []);
-
-  const fetchExpenses = async () => {
+  const fetchExpenses = useCallback(async () => {
     if (!user) {
-        setError("User not authenticated");
-        setExpenses(MOCK_EXPENSES);
-        return;
+      setError('User not authenticated.');
+      setLoading(false);
+      setRefreshing(false);
+      return;
     }
-    setLoading(true);
     setError(null);
-    // Actual Supabase fetch would be here
-    setExpenses(MOCK_EXPENSES);
-    setLoading(false);
-  };
+    try {
+      const { data, error: fetchError } = await expenseService.getExpenses(user.id);
+      if (fetchError) {
+        setError(fetchError.message);
+      } else {
+        setExpenses(data || []);
+      }
+    } catch (e) {
+      const err = e as Error;
+      setError(err.message);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, [user]);
 
-  const filteredExpenses = expenses.filter(expense => 
-    expense.expense_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    expense.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (expense.vendor || '').toLowerCase().includes(searchQuery.toLowerCase())
+  useFocusEffect(
+    useCallback(() => {
+      setLoading(true);
+      fetchExpenses();
+    }, [fetchExpenses])
+  );
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    fetchExpenses();
+  }, [fetchExpenses]);
+
+  const filteredExpenses = expenses.filter(
+    (expense) =>
+      expense.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      expense.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (expense.vendor && expense.vendor.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (expense.description && expense.description.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const renderItem = ({ item }: { item: Expense }) => (
     <ListItem
-      title={item.expense_name}
-      subtitle={`${item.category} - ${item.vendor || 'N/A'} - ${new Date(item.date).toLocaleDateString()}`}
+      title={item.name}
+      subtitle={`${item.category} - ${format(parseISO(item.expense_date), 'MMM dd, yyyy')}`}
       onPress={() => navigation.navigate(ROUTES.EXPENSE_DETAIL, { expenseId: item.id })}
-      rightIconName="chevron-forward-outline"
+      leftIconName="receipt-outline"
     >
-        <Text style={styles.amountText}>${item.amount.toFixed(2)}</Text>
+      <Text style={styles.amountText}>${item.amount.toFixed(2)}</Text>
     </ListItem>
   );
 
+  if (loading && !refreshing) {
+    return (
+      <ScreenContainer style={styles.centerAlign}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={styles.messageText}>Loading expenses...</Text>
+      </ScreenContainer>
+    );
+  }
+
+  if (error) {
+    return (
+      <ScreenContainer style={styles.centerAlign}>
+        <Ionicons name="alert-circle-outline" size={48} color={colors.error} />
+        <Text style={styles.errorMessageText}>{error}</Text>
+        <Button title="Retry" onPress={fetchExpenses} />
+      </ScreenContainer>
+    );
+  }
+
   return (
     <ScreenContainer>
-      <View style={styles.controlsContainer}>
-        <TextInput 
-          style={styles.searchInput}
-          placeholder="Search by Name, Category, Vendor..."
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          placeholderTextColor={colors.gray}
+      <View style={styles.headerContainer}>
+        <Text style={styles.screenTitle}>Expenses</Text>
+        <Button
+          title="New Expense"
+          onPress={() => navigation.navigate(ROUTES.EXPENSE_FORM, {})}
+          iconLeft={<Ionicons name="add-circle-outline" size={20} color={colors.white} />}
+          size="small"
         />
-        <TouchableOpacity onPress={() => setFilterVisible(!filterVisible)} style={styles.iconButton}>
-            <Ionicons name="filter-outline" size={24} color={colors.primary} />
-        </TouchableOpacity>
       </View>
 
-      {filterVisible && (
-        <View style={styles.filterPanel}>
-            <Text style={styles.filterText}>Filter options for expenses (e.g., by category, date range).</Text>
+      <View style={styles.searchContainer}>
+        <Ionicons name="search-outline" size={20} color={colors.textSecondary} style={styles.searchIcon} />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search expenses (name, category, vendor...)"
+          value={searchTerm}
+          onChangeText={setSearchTerm}
+          placeholderTextColor={colors.textSecondary}
+        />
+        {searchTerm ? (
+          <TouchableOpacity onPress={() => setSearchTerm('')} style={styles.clearSearchButton}>
+            <Ionicons name="close-circle-outline" size={20} color={colors.textSecondary} />
+          </TouchableOpacity>
+        ) : null}
+      </View>
+
+      {filteredExpenses.length === 0 && !loading ? (
+        <View style={styles.centerAlignContent}>
+            <Ionicons name="documents-outline" size={48} color={colors.textSecondary} />
+            <Text style={styles.emptyMessage}>No expenses found.</Text>
+            <Text style={styles.emptySubMessage}>
+                {searchTerm ? 'Try a different search term.' : 'Tap "New Expense" to get started.'}
+            </Text>
         </View>
+      ) : (
+        <FlatList
+          data={filteredExpenses}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.listContentContainer}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} tintColor={colors.primary} />}
+        />
       )}
-
-      {loading && <Text style={styles.loadingText}>Loading expenses...</Text>}
-      {error && <Text style={styles.errorText}>Error: {error}</Text>}
-      
-      {!loading && !error && filteredExpenses.length === 0 && (
-        <Text style={styles.emptyText}>No expenses found. Add one!</Text>
-      )}
-
-      <FlatList
-        data={filteredExpenses}
-        renderItem={renderItem}
-        keyExtractor={item => item.id}
-        contentContainerStyle={styles.listContent}
-        onRefresh={fetchExpenses}
-        refreshing={loading}
-      />
-      <Button
-        title="Record New Expense"
-        onPress={() => navigation.navigate(ROUTES.EXPENSE_FORM, {})}
-        style={styles.addButton}
-      />
     </ScreenContainer>
   );
 };
 
 const styles = StyleSheet.create({
-  controlsContainer: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 5, marginBottom: 10 },
-  searchInput: { flex: 1, height: 40, backgroundColor: colors.lightGray, borderRadius: 8, paddingHorizontal: 10, marginRight: 10, fontSize: 16, borderWidth:1, borderColor:colors.border },
-  iconButton: { padding: 8 },
-  filterPanel: { padding: 15, backgroundColor: colors.surface, borderRadius: 8, marginBottom: 10, borderWidth:1, borderColor:colors.border },
-  filterText: { color: colors.textSecondary, textAlign: 'center' },
-  listContent: { paddingBottom: 70 },
-  loadingText: { textAlign: 'center', padding: 20, color: colors.textSecondary },
-  errorText: { textAlign: 'center', padding: 20, color: colors.error },
-  emptyText: { textAlign: 'center', padding: 20, color: colors.textSecondary, fontSize: 16 },
-  addButton: { position: 'absolute', bottom: 20, left: 20, right: 20 },
-  amountText: { fontSize: 16, fontWeight: 'bold', color: colors.primary, marginLeft: 'auto' },
+  centerAlign: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  centerAlignContent: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
+  messageText: { marginTop: 10, fontSize: 16, color: colors.textSecondary },
+  errorMessageText: { marginTop: 10, fontSize: 16, color: colors.error, textAlign: 'center' },
+  headerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 15,
+    paddingTop: 15,
+    paddingBottom: 10,
+    backgroundColor: colors.surface,
+  },
+  screenTitle: { fontSize: 24, fontWeight: 'bold', color: colors.text },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.inputBackground, // Ensure this color is defined
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    marginHorizontal: 15,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: colors.borderLight, // Ensure this color is defined
+  },
+  searchIcon: { marginRight: 8 },
+  searchInput: {
+    flex: 1,
+    height: 40,
+    fontSize: 16,
+    color: colors.text,
+  },
+  clearSearchButton: { padding: 5 },
+  listContentContainer: { paddingHorizontal: 15, paddingBottom: 20 },
+  emptyMessage: { fontSize: 18, color: colors.textSecondary, marginTop: 15, textAlign: 'center' },
+  emptySubMessage: { fontSize: 14, color: colors.TEXT_TERTIARY, marginTop: 5, textAlign: 'center' },
+  amountText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: colors.primary,
+    marginLeft: 'auto',
+  },
 });
 
 export default ExpenseListScreen; 

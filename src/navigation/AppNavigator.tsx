@@ -70,10 +70,6 @@ const AppNavigator = () => {
     return <LoadingIndicator fullScreen={true} text="Initializing FeatherLiteBooks..." />;
   }
 
-  // Simple logic: If no session, but user might exist (e.g. during OAuth redirect or just after signup before session is fully set by listener)
-  // you might want to show a loading screen or a specific intermediate screen.
-  // For this boilerplate, we directly go to Auth or App.
-
   // The PublicNavigator is the outermost layer if you want a landing page accessible to all.
   // From the LandingScreen, users would typically navigate to Login or Signup, which are part of AuthNavigator.
   // If a session exists, we bypass Public/Auth navigators and go straight to AppTabs.

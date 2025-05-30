@@ -48,18 +48,16 @@ export interface InventoryItem {
 }
 
 // --- Expense Type ---
-export type ExpenseStatus = 'pending' | 'approved' | 'reimbursed' | 'rejected';
 export interface Expense {
   id: string; // UUID, Primary Key
   user_id: string; // UUID, FK to auth.users.id
-  date: string; // DATE
-  category: string; // TEXT (could be FK to an expense_categories table)
-  description: string; // TEXT
+  expense_date: string; // DATE (renamed from date)
+  name: string; // TEXT (Added - primary name/title of the expense)
+  category: string; // TEXT (e.g., 'Meals', 'Travel', 'Software')
   amount: number; // NUMERIC
-  vendor_name?: string | null; // TEXT, Nullable
+  vendor?: string | null; // TEXT, Nullable (renamed from vendor_name)
+  description?: string | null; // TEXT, Nullable (detailed notes)
   receipt_url?: string | null; // TEXT, Nullable (URL to stored receipt image)
-  payment_method?: string | null; // TEXT, Nullable (e.g., 'Credit Card', 'Cash')
-  status?: ExpenseStatus | null; // TEXT, Nullable (e.g., 'pending', 'approved')
   created_at: string; // TIMESTAMPTZ
   updated_at: string; // TIMESTAMPTZ
 }

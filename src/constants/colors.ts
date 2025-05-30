@@ -42,4 +42,10 @@ export const colors = {
 
   // Add more specific colors based on FeatherLiteBooks branding
   // e.g. featherLiteBlue, featherLiteGreen
+
+  TEXT: '#1F2937',       // Dark Gray - For primary text
+  TEXT_SECONDARY: '#6B7280', // Medium Gray - For secondary text, placeholders
+  TEXT_TERTIARY: '#9CA3AF', // Light Gray - For less important text, hints (NEW)
+  PLACEHOLDER_TEXT: '#A0AEC0', // Gray - For input placeholders
+  BORDER: '#D1D5DB',      // Light Gray - For borders
 }; 
