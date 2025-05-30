@@ -1,5 +1,6 @@
 export const colors = {
   primary: '#007AFF', // Apple blue, vibrant and accessible
+  primaryMuted: '#7FBFFF', // Lighter shade of primary for disabled states
   secondary: '#5AC8FA', // A lighter, complementary blue
   accent: '#FFD60A', // A warm yellow for highlights or calls to action
 

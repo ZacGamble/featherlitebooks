@@ -25,35 +25,23 @@ const handleRpcCall = async <T>(functionName: string, params: object): Promise<T
 };
 
 // 1. Total Revenue
-export const getTotalRevenue = async (userId: string, startDate?: string, endDate?: string): Promise<NumericRpcResponse> => {
-  const params: { _user_id: string; _start_date?: string; _end_date?: string } = { _user_id: userId };
-  if (startDate) params._start_date = startDate;
-  if (endDate) params._end_date = endDate;
-  return handleRpcCall<NumericRpcResponse>('get_total_revenue', params);
+export const getTotalRevenue = async (userId: string): Promise<NumericRpcResponse> => {
+  return handleRpcCall<NumericRpcResponse>('get_total_revenue', { _user_id: userId });
 };
 
 // 2. Total Expenses
-export const getTotalExpenses = async (userId: string, startDate?: string, endDate?: string): Promise<NumericRpcResponse> => {
-  const params: { _user_id: string; _start_date?: string; _end_date?: string } = { _user_id: userId };
-  if (startDate) params._start_date = startDate;
-  if (endDate) params._end_date = endDate;
-  return handleRpcCall<NumericRpcResponse>('get_total_expenses', params);
+export const getTotalExpenses = async (userId: string): Promise<NumericRpcResponse> => {
+  return handleRpcCall<NumericRpcResponse>('get_total_expenses', { _user_id: userId });
 };
 
 // 3. Net Profit/Loss
-export const getNetProfitLoss = async (userId: string, startDate?: string, endDate?: string): Promise<NumericRpcResponse> => {
-  const params: { _user_id: string; _start_date?: string; _end_date?: string } = { _user_id: userId };
-  if (startDate) params._start_date = startDate;
-  if (endDate) params._end_date = endDate;
-  return handleRpcCall<NumericRpcResponse>('get_net_profit_loss', params);
+export const getNetProfitLoss = async (userId: string): Promise<NumericRpcResponse> => {
+  return handleRpcCall<NumericRpcResponse>('get_net_profit_loss', { _user_id: userId });
 };
 
 // 4. Average Invoice Value
-export const getAverageInvoiceValue = async (userId: string, startDate?: string, endDate?: string): Promise<NumericRpcResponse> => {
-  const params: { _user_id: string; _start_date?: string; _end_date?: string } = { _user_id: userId };
-  if (startDate) params._start_date = startDate;
-  if (endDate) params._end_date = endDate;
-  return handleRpcCall<NumericRpcResponse>('get_average_invoice_value', params);
+export const getAverageInvoiceValue = async (userId: string): Promise<NumericRpcResponse> => {
+  return handleRpcCall<NumericRpcResponse>('get_average_invoice_value', { _user_id: userId });
 };
 
 // 5. Total Clients Count
@@ -67,11 +55,8 @@ export const getTotalInventoryValue = async (userId: string): Promise<NumericRpc
 };
 
 // 7. Total Outstanding Receivables
-export const getTotalOutstandingReceivables = async (userId: string, startDate?: string, endDate?: string): Promise<NumericRpcResponse> => {
-  const params: { _user_id: string; _start_date?: string; _end_date?: string } = { _user_id: userId };
-  if (startDate) params._start_date = startDate;
-  if (endDate) params._end_date = endDate;
-  return handleRpcCall<NumericRpcResponse>('get_total_outstanding_receivables', params);
+export const getTotalOutstandingReceivables = async (userId: string): Promise<NumericRpcResponse> => {
+  return handleRpcCall<NumericRpcResponse>('get_total_outstanding_receivables', { _user_id: userId });
 };
 
 // 8. New Invoices This Month Count

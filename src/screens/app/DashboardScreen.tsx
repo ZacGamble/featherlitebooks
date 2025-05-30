@@ -6,6 +6,7 @@ import {
   ScrollView,
   ActivityIndicator,
   TouchableOpacity,
+  Alert,
   TextInput,
   Platform,
 } from 'react-native';
@@ -21,6 +22,7 @@ import { colors } from '@/constants/colors';
 import * as dashboardService from '@/api/dashboardService';
 import { Ionicons } from '@expo/vector-icons';
 import { format, subMonths, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns';
+import RNHTMLtoPDF from 'react-native-html-to-pdf';
 
 // If Dashboard is a direct screen in AppTabs, use BottomTabScreenProps
 // from '@react-navigation/bottom-tabs'. If it's part of a stack within a tab, adjust accordingly.
@@ -38,11 +40,10 @@ interface MetricCardData {
   isLoading: boolean;
   error: string | null;
   isMonetary?: boolean;
-  showDatePicker?: boolean; // To indicate if this metric uses date range
-  fetcher: (userId: string, startDate?: string, endDate?: string) => Promise<any>;
+  fetcher: (userId: string) => Promise<any>;
 }
 
-const formatDateForSupabase = (date: Date): string => format(date, 'yyyy-MM-dd');
+// const formatDateForSupabase = (date: Date): string => format(date, 'yyyy-MM-dd');
 
 // Helper to format currency
 const formatCurrency = (value: number | null | undefined, defaultCurrency: string | undefined = 'USD') => {
@@ -51,12 +52,9 @@ const formatCurrency = (value: number | null | undefined, defaultCurrency: strin
 };
 
 const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
-  const { user, profile, signOut } = useAuth();
+  const { user, profile } = useAuth();
   const [metrics, setMetrics] = useState<MetricCardData[]>([]);
-  const [globalStartDate, setGlobalStartDate] = useState<Date>(startOfMonth(new Date()));
-  const [globalEndDate, setGlobalEndDate] = useState<Date>(endOfMonth(new Date()));
-  const [tempStartDate, setTempStartDate] = useState<string>(formatDateForSupabase(globalStartDate));
-  const [tempEndDate, setTempEndDate] = useState<string>(formatDateForSupabase(globalEndDate));
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   
   // Ref to track if initial metrics for the current dep set have been loaded
   const hasLoadedForCurrentDepsRef = useRef<boolean>(false);
@@ -69,7 +67,6 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
       isLoading: true,
       error: null,
       isMonetary: true,
-      showDatePicker: true,
       fetcher: dashboardService.getTotalRevenue,
     },
     {
@@ -79,7 +76,6 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
       isLoading: true,
       error: null,
       isMonetary: true,
-      showDatePicker: true,
       fetcher: dashboardService.getTotalExpenses,
     },
     {
@@ -89,7 +85,6 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
       isLoading: true,
       error: null,
       isMonetary: true,
-      showDatePicker: true,
       fetcher: dashboardService.getNetProfitLoss,
     },
     {
@@ -99,7 +94,6 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
       isLoading: true,
       error: null,
       isMonetary: true,
-      showDatePicker: true, // Assuming filtering by invoice date is desired
       fetcher: dashboardService.getTotalOutstandingReceivables,
     },
     {
@@ -109,7 +103,6 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
       isLoading: true,
       error: null,
       isMonetary: true,
-      showDatePicker: true,
       fetcher: dashboardService.getAverageInvoiceValue,
     },
     {
@@ -119,7 +112,6 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
       unit: 'Invoices',
       isLoading: true,
       error: null,
-      showDatePicker: false, // This metric is specific to current month by its RPC name
       fetcher: (uid) => dashboardService.getNewInvoicesCurrentMonthCount(uid),
     },
     {
@@ -129,7 +121,6 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
       unit: 'Clients',
       isLoading: true,
       error: null,
-      showDatePicker: false,
       fetcher: dashboardService.getTotalClientsCount,
     },
     {
@@ -139,17 +130,14 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
       isLoading: true,
       error: null,
       isMonetary: true,
-      showDatePicker: false,
       fetcher: dashboardService.getTotalInventoryValue,
     },
   ], []);
 
-  const fetchMetricData = useCallback(async (metric: MetricCardData, userId: string, startDate: string, endDate: string) => {
+  const fetchMetricData = useCallback(async (metric: MetricCardData, userId: string) => {
     setMetrics(prev => prev.map(m => m.id === metric.id ? { ...m, isLoading: true, error: null } : m));
     try {
-      const result = metric.showDatePicker 
-        ? await metric.fetcher(userId, startDate, endDate) 
-        : await metric.fetcher(userId);
+      const result = await metric.fetcher(userId);
       
       setMetrics(prev => prev.map(m => m.id === metric.id ? { ...m, value: result, isLoading: false } : m));
     } catch (e) {
@@ -159,14 +147,12 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     }
   }, []);
 
-  const loadAllMetrics = useCallback((currentUserId: string, currentStartDate: Date, currentEndDate: Date, defaultCurrency: string | undefined) => {
-    const sd = formatDateForSupabase(currentStartDate);
-    const ed = formatDateForSupabase(currentEndDate);
+  const loadAllMetrics = useCallback((currentUserId: string, defaultCurrency: string | undefined) => {
     const initialMetricsData = initialMetricsSetup(currentUserId, defaultCurrency);
     setMetrics(initialMetricsData); 
 
     initialMetricsData.forEach(metric => {
-      fetchMetricData(metric, currentUserId, sd, ed);
+      fetchMetricData(metric, currentUserId);
     });
   }, [initialMetricsSetup, fetchMetricData]);
 
@@ -177,9 +163,6 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         userId: user?.id,
         profileDefined: typeof profile !== 'undefined',
         defaultCurrency: profile?.default_currency,
-        startDate: globalStartDate.toISOString(),
-        endDate: globalEndDate.toISOString(),
-        // loadAllMetrics ref will be the same unless component remounts, so not logging it.
         hasLoadedRef: hasLoadedForCurrentDepsRef.current
       }
     );
@@ -187,7 +170,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     if (user?.id && typeof profile?.default_currency === 'string') {
       if (!hasLoadedForCurrentDepsRef.current) {
         console.log('DashboardScreen: Condition met (user and defaultCurrency string present), calling loadAllMetrics.');
-        loadAllMetrics(user.id, globalStartDate, globalEndDate, profile.default_currency);
+        loadAllMetrics(user.id, profile.default_currency);
         hasLoadedForCurrentDepsRef.current = true;
       } else {
         console.log('DashboardScreen: Condition met, but hasLoadedRef is true, skipping loadAllMetrics.');
@@ -211,40 +194,79 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
       );
       hasLoadedForCurrentDepsRef.current = false;
     };
-  }, [user?.id, globalStartDate, globalEndDate, profile?.default_currency, loadAllMetrics]);
+  }, [user?.id, profile?.default_currency, loadAllMetrics]);
 
-  const handleApplyDateFilter = () => {
-    try {
-        const newStartDate = new Date(tempStartDate + 'T00:00:00'); // Ensure parsing in local timezone context
-        const newEndDate = new Date(tempEndDate + 'T23:59:59');
-        if (isNaN(newStartDate.getTime()) || isNaN(newEndDate.getTime())) {
-            alert('Invalid date format. Please use YYYY-MM-DD.');
-            return;
-        }
-        if (newEndDate < newStartDate) {
-            alert('End date cannot be earlier than start date.');
-            return;
-        }
-        setGlobalStartDate(newStartDate);
-        setGlobalEndDate(newEndDate);
-    } catch (error) {
-        alert('Error parsing dates. Please use YYYY-MM-DD format.');
-    }
+  const generateHtmlContent = () => {
+    const reportDate = format(new Date(), 'MMMM dd, yyyy HH:mm');
+    let metricsHtml = '';
+
+    metrics.forEach(metric => {
+      let displayValue = 'N/A';
+      if (metric.isLoading) {
+        displayValue = 'Loading...';
+      } else if (metric.error) {
+        displayValue = `Error: ${metric.error}`;
+      } else if (metric.isMonetary) {
+        displayValue = formatCurrency(metric.value as number | null, profile!.default_currency || 'USD');
+      } else if (metric.value !== null && typeof metric.value !== 'undefined') {
+        displayValue = `${metric.value}${metric.unit ? ' ' + metric.unit : ''}`;
+      }
+
+      metricsHtml += `
+        <div style="margin-bottom: 15px; padding: 10px; border: 1px solid #eee; border-radius: 5px; background-color: #f9f9f9;">
+          <h3 style="margin-top: 0; margin-bottom: 5px; color: #333; font-size: 16px;">${metric.title}</h3>
+          <p style="font-size: 20px; font-weight: bold; margin: 0; color: ${colors.primary};">${displayValue}</p>
+        </div>
+      `;
+    });
+
+    return `
+      <html>
+        <head>
+          <style>
+            body { font-family: Helvetica, Arial, sans-serif; margin: 25px; color: #444; background-color: #fff; }
+            .report-header { text-align: center; margin-bottom: 40px; padding-bottom: 15px; border-bottom: 2px solid ${colors.primary}; }
+            .business-name { font-size: 28px; font-weight: bold; color: #222; margin-bottom: 5px; }
+            .report-title { font-size: 22px; color: ${colors.primary}; margin-bottom: 5px; }
+            .report-date { font-size: 14px; color: #666; }
+            h3 { page-break-after: avoid; }
+            div { page-break-inside: avoid; }
+          </style>
+        </head>
+        <body>
+          <div class="report-header">
+            ${profile?.business_name ? `<div class="business-name">${profile.business_name}</div>` : ''}
+            <div class="report-title">Dashboard Summary</div>
+            <div class="report-date">Generated on: ${reportDate}</div>
+          </div>
+          ${metricsHtml}
+        </body>
+      </html>
+    `;
   };
 
-  const setDateRangePreset = (preset: 'month' | 'year') => {
-    let newStart: Date, newEnd: Date;
-    if (preset === 'month') {
-        newStart = startOfMonth(new Date());
-        newEnd = endOfMonth(new Date());
-    } else { // year
-        newStart = startOfYear(new Date());
-        newEnd = endOfYear(new Date());
+  const exportToPdf = async () => {
+    if (!profile) {
+        Alert.alert('Profile Not Loaded', 'Please wait for your profile to load before exporting.');
+        return;
     }
-    setTempStartDate(formatDateForSupabase(newStart));
-    setTempEndDate(formatDateForSupabase(newEnd));
-    setGlobalStartDate(newStart);
-    setGlobalEndDate(newEnd);
+    if (isGeneratingPdf) return;
+    setIsGeneratingPdf(true);
+    try {
+      const htmlContent = generateHtmlContent();
+      const options = {
+        html: htmlContent,
+        fileName: `Dashboard-${profile.business_name || 'FeatherLite'}-${format(new Date(), 'yyyyMMddHHmmss')}`,
+        directory: 'Documents',
+      };
+      const file = await RNHTMLtoPDF.convert(options);
+      Alert.alert('PDF Generated', `Dashboard report saved to: ${file.filePath}`);
+    } catch (error) {
+      console.error('Failed to generate PDF', error);
+      Alert.alert('Error', 'Could not generate dashboard PDF.');
+    } finally {
+      setIsGeneratingPdf(false);
+    }
   };
 
   const renderMetricCard = (metric: MetricCardData) => {
@@ -256,7 +278,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     } else if (metric.id === 'topSellingItem' || metric.id === 'topExpenseCategory') {
       displayValue = typeof metric.value === 'string' ? metric.value : 'N/A';
     } else if (metric.isMonetary) {
-      displayValue = formatCurrency(metric.value as number | null, profile?.default_currency ?? undefined);
+      displayValue = formatCurrency(metric.value as number | null, profile?.default_currency || 'USD');
     } else if (metric.value !== null && typeof metric.value !== 'undefined') {
       displayValue = `${metric.value}${metric.unit ? ' ' + metric.unit : ''}`;
     }
@@ -291,42 +313,19 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         <Text style={styles.subtitle}>Your Financial Overview</Text>
       </View>
 
-      <View style={styles.dateFilterContainer}>
-        <Text style={styles.dateLabel}>Start Date:</Text>
-        <TextInput 
-            style={styles.dateInput} 
-            value={tempStartDate} 
-            onChangeText={setTempStartDate} 
-            placeholder="YYYY-MM-DD"
-        />
-        <Text style={styles.dateLabel}>End Date:</Text>
-        <TextInput 
-            style={styles.dateInput} 
-            value={tempEndDate} 
-            onChangeText={setTempEndDate} 
-            placeholder="YYYY-MM-DD"
-        />
-        <TouchableOpacity style={styles.filterButton} onPress={handleApplyDateFilter}>
-            <Ionicons name="checkmark-circle-outline" size={20} color={colors.white} />
-            <Text style={styles.filterButtonText}>Apply</Text>
-        </TouchableOpacity>
-      </View>
-      <View style={styles.presetButtonsContainer}>
-        <TouchableOpacity style={styles.presetButton} onPress={() => setDateRangePreset('month')}>
-            <Text style={styles.presetButtonText}>This Month</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.presetButton} onPress={() => setDateRangePreset('year')}>
-            <Text style={styles.presetButtonText}>This Year</Text>
-        </TouchableOpacity>
-      </View>
-
       <View style={styles.metricsGrid}>
         {metrics.map(metric => renderMetricCard(metric))}
       </View>
 
-      <TouchableOpacity onPress={signOut} style={styles.signOutButton}>
-        <Ionicons name="log-out-outline" size={20} color={colors.error} />
-        <Text style={styles.signOutButtonText}>Sign Out</Text>
+      <TouchableOpacity 
+        onPress={exportToPdf} 
+        style={[styles.actionButton, isGeneratingPdf && styles.actionButtonDisabled]}
+        disabled={isGeneratingPdf}
+      >
+        <Ionicons name={isGeneratingPdf ? "hourglass-outline" : "download-outline"} size={20} color={colors.white} />
+        <Text style={styles.actionButtonText}>
+          {isGeneratingPdf ? 'Generating PDF...' : 'Export Dashboard to PDF'}
+        </Text>
       </TouchableOpacity>
 
     </ScreenContainer>
@@ -348,59 +347,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.textSecondary,
     marginBottom: 20,
-  },
-  dateFilterContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-    paddingHorizontal: 5,
-    flexWrap: 'wrap', // Allow wrapping on smaller screens
-  },
-  dateLabel: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    marginRight: 5,
-  },
-  dateInput: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 5,
-    padding: Platform.OS === 'ios' ? 10 : 8,
-    fontSize: 14,
-    marginRight: 10,
-    backgroundColor: colors.inputBackground, // Added from ClientListScreen
-    color: colors.text,
-    minWidth: 100, // Ensure input is wide enough
-  },
-  filterButton: {
-    backgroundColor: colors.primary,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 5,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  filterButtonText: {
-    color: colors.white,
-    fontWeight: 'bold',
-    marginLeft: 5,
-  },
-  presetButtonsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-    marginBottom: 20,
-    paddingHorizontal: 5,
-  },
-  presetButton: {
-    backgroundColor: colors.secondary,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 5,
-    marginRight: 10,
-  },
-  presetButtonText: {
-    color: colors.white,
-    fontWeight: '500',
   },
   metricsGrid: {
     flexDirection: 'row',
@@ -440,23 +386,30 @@ const styles = StyleSheet.create({
     marginTop: 5,
     textAlign: 'center',
   },
-  signOutButton: {
-    marginTop: 30,
-    marginBottom: 20,
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    borderColor: colors.error,
-    borderWidth: 1,
-    borderRadius: 5,
+  actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.errorBackground, // Added from ClientListScreen
+    backgroundColor: colors.primary,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    marginHorizontal: 15,
+    marginVertical: 30,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.22,
+    shadowRadius: 2.22,
   },
-  signOutButtonText: {
-    color: colors.error,
-    marginLeft: 8,
+  actionButtonDisabled: {
+    backgroundColor: colors.primaryMuted,
+  },
+  actionButtonText: {
+    color: colors.white,
+    marginLeft: 10,
     fontWeight: 'bold',
+    fontSize: 16,
   },
   centerMessageContainer: {
     flex: 1,

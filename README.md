@@ -25,21 +25,11 @@ Repository: GitLab (Private/Link to be added)
 
 ---
 
-## Core Principles & Design Goals
-
-This project scaffold is built with the following core principles in mind:
-
-1.  **Test-Driven Development (TDD):** The setup facilitates writing tests alongside or before writing application code. Configuration for Jest and React Native Testing Library is complete and ready for use. Example tests demonstrate best practices.
-2.  **Modular Components & Code:** Encourages breaking down UI, logic, and functionality into small, reusable, and focused modules/components.
-3.  **Small File Sizes:** The project structure and recommended patterns naturally lead to writing code in smaller, single-purpose files. This benefits maintainability and LLM context windows.
-4.  **Separation of Concerns (SoC):** Clearly divides different aspects of the application (UI, business logic, data fetching, navigation, utilities, configuration, tests, and backend integration) into distinct directories and files.
-5.  **Industry Best Practices:** Includes configuration for standard tooling like TypeScript, ESLint, Prettier, and environment variable handling. Follows common React Native, Expo, and Supabase patterns.
-
 **Project-Specific Guidance Incorporated:**
 
 -   "The application targets small business owners; the UI should be extremely intuitive, clean, and avoid complex financial jargon, aligning with the 'FeatherLite' branding."
 -   "A core architectural requirement is a clear distinction between public-facing screens (Landing, Login, Signup) and authenticated screens which will form the main application."
--   "Authenticated sections should primarily use a **Bottom Tab Navigator** for main modules: Dashboard, Inventory, Invoices (Sales), Expenses, and Reports."
+-   "Authenticated sections should primarily use a **Top Tab Navigator** for main modules: Dashboard, Inventory, Invoices (Sales), Expenses, and Reports."
 -   "The Settings screen is accessible within the authenticated part of the app."
 -   "All textual references to 'FlowBooks' from mockups have been corrected to 'FeatherLiteBooks'."
 -   "List screens (e.g., Inventory, Invoices, Expenses) include structural placeholders for Search and Filter functionalities."
