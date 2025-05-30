@@ -23,6 +23,7 @@ import * as dashboardService from '@/api/dashboardService';
 import { Ionicons } from '@expo/vector-icons';
 import { format, subMonths, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns';
 import RNHTMLtoPDF from 'react-native-html-to-pdf';
+import jsPDF from 'jspdf'; // Import jsPDF
 
 // If Dashboard is a direct screen in AppTabs, use BottomTabScreenProps
 // from '@react-navigation/bottom-tabs'. If it's part of a stack within a tab, adjust accordingly.
@@ -196,9 +197,13 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     };
   }, [user?.id, profile?.default_currency, loadAllMetrics]);
 
-  const generateHtmlContent = () => {
+  const generateSimpleTextReport = (): string => {
     const reportDate = format(new Date(), 'MMMM dd, yyyy HH:mm');
-    let metricsHtml = '';
+    let reportText = `Dashboard Summary\n`;
+    if (profile?.business_name) {
+      reportText += `${profile.business_name}\n`;
+    }
+    reportText += `Generated on: ${reportDate}\n\n`;
 
     metrics.forEach(metric => {
       let displayValue = 'N/A';
@@ -211,38 +216,9 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
       } else if (metric.value !== null && typeof metric.value !== 'undefined') {
         displayValue = `${metric.value}${metric.unit ? ' ' + metric.unit : ''}`;
       }
-
-      metricsHtml += `
-        <div style="margin-bottom: 15px; padding: 10px; border: 1px solid #eee; border-radius: 5px; background-color: #f9f9f9;">
-          <h3 style="margin-top: 0; margin-bottom: 5px; color: #333; font-size: 16px;">${metric.title}</h3>
-          <p style="font-size: 20px; font-weight: bold; margin: 0; color: ${colors.primary};">${displayValue}</p>
-        </div>
-      `;
+      reportText += `${metric.title}: ${displayValue}\n`;
     });
-
-    return `
-      <html>
-        <head>
-          <style>
-            body { font-family: Helvetica, Arial, sans-serif; margin: 25px; color: #444; background-color: #fff; }
-            .report-header { text-align: center; margin-bottom: 40px; padding-bottom: 15px; border-bottom: 2px solid ${colors.primary}; }
-            .business-name { font-size: 28px; font-weight: bold; color: #222; margin-bottom: 5px; }
-            .report-title { font-size: 22px; color: ${colors.primary}; margin-bottom: 5px; }
-            .report-date { font-size: 14px; color: #666; }
-            h3 { page-break-after: avoid; }
-            div { page-break-inside: avoid; }
-          </style>
-        </head>
-        <body>
-          <div class="report-header">
-            ${profile?.business_name ? `<div class="business-name">${profile.business_name}</div>` : ''}
-            <div class="report-title">Dashboard Summary</div>
-            <div class="report-date">Generated on: ${reportDate}</div>
-          </div>
-          ${metricsHtml}
-        </body>
-      </html>
-    `;
+    return reportText;
   };
 
   const exportToPdf = async () => {
@@ -252,21 +228,82 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     }
     if (isGeneratingPdf) return;
     setIsGeneratingPdf(true);
-    try {
-      const htmlContent = generateHtmlContent();
-      const options = {
-        html: htmlContent,
-        fileName: `Dashboard-${profile.business_name || 'FeatherLite'}-${format(new Date(), 'yyyyMMddHHmmss')}`,
-        directory: 'Documents',
-      };
-      const file = await RNHTMLtoPDF.convert(options);
-      Alert.alert('PDF Generated', `Dashboard report saved to: ${file.filePath}`);
-    } catch (error) {
-      console.error('Failed to generate PDF', error);
-      Alert.alert('Error', 'Could not generate dashboard PDF.');
-    } finally {
-      setIsGeneratingPdf(false);
+
+    const fileName = `Dashboard-${profile.business_name || 'FeatherLite'}-${format(new Date(), 'yyyyMMddHHmmss')}`;
+
+    if (Platform.OS === 'web') {
+      try {
+        const pdf = new jsPDF();
+        pdf.setFontSize(18);
+        pdf.text('Dashboard Summary', 14, 22);
+        if (profile.business_name) {
+          pdf.setFontSize(16);
+          pdf.text(profile.business_name, 14, 30);
+        }
+        pdf.setFontSize(10);
+        pdf.text(`Generated on: ${format(new Date(), 'MMMM dd, yyyy HH:mm')}`, 14, 36);
+        
+        let yPos = 50;
+        metrics.forEach(metric => {
+          if (yPos > 270) { // Basic pagination
+            pdf.addPage();
+            yPos = 20;
+          }
+          let displayValue = 'N/A';
+          if (metric.isLoading) displayValue = 'Loading...';
+          else if (metric.error) displayValue = `Error: ${metric.error}`;
+          else if (metric.isMonetary) displayValue = formatCurrency(metric.value as number | null, profile!.default_currency || 'USD');
+          else if (metric.value !== null && typeof metric.value !== 'undefined') displayValue = `${metric.value}${metric.unit ? ' ' + metric.unit : ''}`;
+          
+          pdf.setFontSize(12);
+          pdf.text(`${metric.title}:`, 14, yPos);
+          pdf.setFontSize(12);
+          pdf.text(displayValue, 70, yPos);
+          yPos += 7;
+        });
+        
+        pdf.save(`${fileName}.pdf`);
+        Alert.alert('PDF Generated', `Dashboard report downloaded as ${fileName}.pdf`);
+      } catch (error) {
+        console.error('Failed to generate PDF for web', error);
+        Alert.alert('Error', 'Could not generate dashboard PDF for web.');
+      }
+    } else {
+      // Native PDF generation using RNHTMLtoPDF
+      try {
+        // HTML generation for native needs to be defined here if different from web
+        // For now, reusing a simplified HTML structure that RNHTMLtoPDF can handle
+        const htmlContent = `
+        <html>
+          <head><style>body { font-family: Helvetica, Arial, sans-serif; margin: 25px; } h1 { font-size: 18px; } h2 { font-size: 16px; } p { font-size: 14px; }</style></head>
+          <body>
+            <h1>Dashboard Summary</h1>
+            ${profile.business_name ? `<h2>${profile.business_name}</h2>` : ''}
+            <p>Generated on: ${format(new Date(), 'MMMM dd, yyyy HH:mm')}</p>
+            ${metrics.map(metric => {
+              let displayValue = 'N/A';
+              if (metric.isLoading) displayValue = 'Loading...';
+              else if (metric.error) displayValue = `Error: ${metric.error}`;
+              else if (metric.isMonetary) displayValue = formatCurrency(metric.value as number | null, profile!.default_currency || 'USD');
+              else if (metric.value !== null && typeof metric.value !== 'undefined') displayValue = `${metric.value}${metric.unit ? ' ' + metric.unit : ''}`;
+              return `<div style="margin-bottom:10px;"><strong>${metric.title}:</strong> ${displayValue}</div>`;
+            }).join('')}
+          </body>
+        </html>`;
+
+        const options = {
+          html: htmlContent,
+          fileName: fileName,
+          directory: 'Documents',
+        };
+        const file = await RNHTMLtoPDF.convert(options);
+        Alert.alert('PDF Generated', `Dashboard report saved to: ${file.filePath}`);
+      } catch (error) {
+        console.error('Failed to generate PDF for native', error);
+        Alert.alert('Error', 'Could not generate dashboard PDF for native.');
+      }
     }
+    setIsGeneratingPdf(false);
   };
 
   const renderMetricCard = (metric: MetricCardData) => {
@@ -275,8 +312,6 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
       displayValue = 'Loading...';
     } else if (metric.error) {
       displayValue = 'Error';
-    } else if (metric.id === 'topSellingItem' || metric.id === 'topExpenseCategory') {
-      displayValue = typeof metric.value === 'string' ? metric.value : 'N/A';
     } else if (metric.isMonetary) {
       displayValue = formatCurrency(metric.value as number | null, profile?.default_currency || 'USD');
     } else if (metric.value !== null && typeof metric.value !== 'undefined') {
