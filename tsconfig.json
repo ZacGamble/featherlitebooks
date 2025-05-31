@@ -19,8 +19,8 @@
     "src/**/*.ts",
     "src/**/*.tsx",
     "App.tsx",
-    "*.js", // Include JS config files like babel.config.js, jest.config.js
-    "*.ts" // Include app.config.ts
+    "*.js",
+    "*.ts"
   ],
   "exclude": ["node_modules"]
 } 

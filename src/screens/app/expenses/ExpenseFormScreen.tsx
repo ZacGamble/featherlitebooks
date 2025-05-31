@@ -10,27 +10,29 @@ import { Expense } from '@/types';
 import * as expenseService from '@/api/expenseService';
 import { useAuth } from '@/auth/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
-// For a more user-friendly date picker, you might consider a library like @react-native-community/datetimepicker
-// For simplicity, we'll use a text input for date initially, assuming YYYY-MM-DD format.
-// Or, install and use @react-native-community/datetimepicker if available and configured.
-// For now, let's assume a simple text input for date, but ideally, a proper date picker should be used.
 
 type Props = NativeStackScreenProps<ExpenseStackParamList, typeof ROUTES.EXPENSE_FORM>;
+
+interface ExpenseFormState extends Partial<Omit<Expense, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'amount'>> {
+  amountString: string;
+}
+
+const defaultExpenseDate = new Date().toISOString().split('T')[0];
 
 export const ExpenseFormScreen: React.FC<Props> = ({ navigation, route }) => {
   const { user } = useAuth();
   const expenseId = route.params?.expenseId;
   const isEditing = !!expenseId;
 
-  const [formState, setFormState] = useState<Partial<Omit<Expense, 'id' | 'user_id' | 'created_at' | 'updated_at'>>>(({
+  const [formState, setFormState] = useState<ExpenseFormState>({
     name: '',
     category: '',
-    amount: 0,
-    expense_date: new Date().toISOString().split('T')[0], // YYYY-MM-DD
+    amountString: '0',
+    expense_date: defaultExpenseDate,
     vendor: '',
     description: '',
-    receipt_url: '' // Though not directly edited here, might be part of the type
-  }));
+    receipt_url: ''
+  });
 
   const [loading, setLoading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -46,10 +48,12 @@ export const ExpenseFormScreen: React.FC<Props> = ({ navigation, route }) => {
         Alert.alert('Error', `Failed to fetch expense details: ${error.message}`);
       } else if (data) {
         setFormState({
-          name: data.name,
-          category: data.category,
-          amount: data.amount,
-          expense_date: data.expense_date.split('T')[0], // Ensure YYYY-MM-DD format
+          name: data.name || '',
+          category: data.category || '',
+          amountString: data.amount?.toString() || '0',
+          expense_date: (data.expense_date && typeof data.expense_date === 'string') 
+                          ? data.expense_date.split('T')[0] 
+                          : defaultExpenseDate,
           vendor: data.vendor || '',
           description: data.description || '',
           receipt_url: data.receipt_url || ''
@@ -73,7 +77,7 @@ export const ExpenseFormScreen: React.FC<Props> = ({ navigation, route }) => {
     }
   }, [expenseId, isEditing, fetchExpenseDetails]);
 
-  const handleInputChange = (field: keyof typeof formState, value: string | number) => {
+  const handleInputChange = (field: keyof ExpenseFormState, value: string) => {
     setFormState(prev => ({ ...prev, [field]: value }));
   };
 
@@ -86,7 +90,8 @@ export const ExpenseFormScreen: React.FC<Props> = ({ navigation, route }) => {
       setFormError('Category is required.');
       return false;
     }
-    if (formState.amount === undefined || formState.amount <= 0) {
+    const amountNumber = parseFloat(formState.amountString);
+    if (isNaN(amountNumber) || amountNumber <= 0) {
       setFormError('Amount must be a positive number.');
       return false;
     }
@@ -111,15 +116,17 @@ export const ExpenseFormScreen: React.FC<Props> = ({ navigation, route }) => {
     setIsSubmitting(true);
     setFormError(null);
 
+    const amountValue = parseFloat(formState.amountString);
+
     const expenseDataToSubmit = {
       user_id: user.id,
       name: formState.name!,
       category: formState.category!,
-      amount: Number(formState.amount!),
+      amount: amountValue,
       expense_date: formState.expense_date!,
       vendor: formState.vendor || null,
       description: formState.description || null,
-      receipt_url: formState.receipt_url || null, // Keep existing or set new if we implement upload
+      receipt_url: formState.receipt_url || null,
     };
 
     try {
@@ -127,7 +134,6 @@ export const ExpenseFormScreen: React.FC<Props> = ({ navigation, route }) => {
       if (isEditing && expenseId) {
         result = await expenseService.updateExpense(expenseId, expenseDataToSubmit);
       } else {
-        // For create, user_id is part of expenseDataToSubmit
         result = await expenseService.createExpense(expenseDataToSubmit as Omit<Expense, 'id' | 'created_at' | 'updated_at'>);
       }
 
@@ -136,7 +142,6 @@ export const ExpenseFormScreen: React.FC<Props> = ({ navigation, route }) => {
         Alert.alert('Save Error', result.error.message);
       } else if (result.data) {
         Alert.alert('Success', `Expense ${isEditing ? 'updated' : 'created'} successfully!`)
-        // Navigate to detail screen if creating, or back if editing
         if (!isEditing && result.data.id) {
             navigation.replace(ROUTES.EXPENSE_DETAIL, { expenseId: result.data.id });
         } else {
@@ -166,29 +171,35 @@ export const ExpenseFormScreen: React.FC<Props> = ({ navigation, route }) => {
 
   return (
     <ScreenContainer scrollable>
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView contentContainerStyle={styles.container}> 
         <View style={styles.topBarContainer}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <Ionicons name="arrow-back-outline" size={28} color={colors.primary} />
             </TouchableOpacity>
             <Text style={styles.title}>{isEditing ? 'Edit Expense' : 'Create New Expense'}</Text>
-            <View style={{width: 40}} /> {/* Spacer to balance title */}
+            <View style={{width: 40}} />
         </View>
 
         {formError && <Text style={styles.errorText}>{formError}</Text>}
 
         <Text style={styles.label}>Expense Name *</Text>
-        <TextInput placeholder="e.g., Team Lunch" value={formState.name} onChangeText={(val) => handleInputChange('name', val)} style={styles.input} placeholderTextColor={colors.placeholderText} />
+        <TextInput placeholder="e.g., Team Lunch" value={formState.name || ''} onChangeText={(val) => handleInputChange('name', val)} style={styles.input} placeholderTextColor={colors.placeholderText} />
         
         <Text style={styles.label}>Category *</Text>
-        <TextInput placeholder="e.g., Meals, Travel, Software" value={formState.category} onChangeText={(val) => handleInputChange('category', val)} style={styles.input} placeholderTextColor={colors.placeholderText} />
+        <TextInput placeholder="e.g., Meals, Travel, Software" value={formState.category || ''} onChangeText={(val) => handleInputChange('category', val)} style={styles.input} placeholderTextColor={colors.placeholderText} />
         
         <Text style={styles.label}>Amount *</Text>
-        <TextInput placeholder="e.g., 45.99" value={formState.amount?.toString()} onChangeText={(val) => handleInputChange('amount', parseFloat(val) || 0)} style={styles.input} keyboardType="numeric" placeholderTextColor={colors.placeholderText} />
+        <TextInput 
+          placeholder="e.g., 45.99" 
+          value={formState.amountString || '0'} 
+          onChangeText={(val) => handleInputChange('amountString', val)} 
+          style={styles.input} 
+          keyboardType="numeric" 
+          placeholderTextColor={colors.placeholderText} 
+        />
         
         <Text style={styles.label}>Date *</Text>
-        <TextInput placeholder="YYYY-MM-DD" value={formState.expense_date} onChangeText={(val) => handleInputChange('expense_date', val)} style={styles.input} maxLength={10} placeholderTextColor={colors.placeholderText} />
-        {/* Consider adding a DatePicker component here */}
+        <TextInput placeholder="YYYY-MM-DD" value={formState.expense_date || ''} onChangeText={(val) => handleInputChange('expense_date', val)} style={styles.input} maxLength={10} placeholderTextColor={colors.placeholderText} />
 
         <Text style={styles.label}>Vendor</Text>
         <TextInput placeholder="e.g., Office Supplies Inc." value={formState.vendor || ''} onChangeText={(val) => handleInputChange('vendor', val)} style={styles.input} placeholderTextColor={colors.placeholderText} />
@@ -196,8 +207,6 @@ export const ExpenseFormScreen: React.FC<Props> = ({ navigation, route }) => {
         <Text style={styles.label}>Description</Text>
         <TextInput placeholder="Detailed notes about the expense" value={formState.description || ''} onChangeText={(val) => handleInputChange('description', val)} style={styles.input} multiline numberOfLines={4} placeholderTextColor={colors.placeholderText} />
 
-        {/* Receipt URL is typically handled via file upload, not direct text input in a simple form */}
-        {/* If formState.receipt_url is available (e.g. from edit), display it */}
         {isEditing && formState.receipt_url && (
             <View style={styles.receiptUrlContainer}>
                 <Text style={styles.label}>Receipt URL:</Text>

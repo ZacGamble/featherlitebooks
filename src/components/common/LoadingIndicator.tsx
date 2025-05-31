@@ -5,7 +5,7 @@ import { colors } from '@/constants/colors';
 interface Props {
   fullScreen?: boolean;
   text?: string;
-  visible?: boolean; // For controlling Modal visibility, defaults to true if not modal
+  visible?: boolean;
   size?: 'small' | 'large';
   color?: string;
 }
@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'column',
     justifyContent: 'space-around',
-    backgroundColor: '#00000040', // Semi-transparent background
+    backgroundColor: '#00000040',
   },
   text: {
     marginTop: 10,

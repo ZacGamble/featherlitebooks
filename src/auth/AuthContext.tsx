@@ -66,7 +66,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     );
     
-    // The `data` object from onAuthStateChange contains the subscription.
     const subscription = data?.subscription;
 
     return () => {
@@ -92,7 +91,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           }
 
           if (data) {
-            // Ensure default_currency is set
             const loadedProfile = data as UserProfile;
             if (!loadedProfile.default_currency) {
               loadedProfile.default_currency = 'USD';
@@ -101,10 +99,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           } else if (status === 406) {
             console.log('No profile found for user, attempting to create one...');
             const defaultUsername = user.email?.split('@')[0] || `user-${user.id.substring(0, 8)}`;
-            const newProfileData: Partial<UserProfile> = { // Use Partial for initial creation
+            const newProfileData: Partial<UserProfile> = {
               id: user.id,
               username: defaultUsername,
-              default_currency: 'USD', // Set default currency on creation
+              default_currency: 'USD',
             };
 
             const { data: createdProfileData, error: createError } = await supabase
@@ -118,7 +116,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               setProfile(null);
             } else if (createdProfileData) {
               console.log('Profile created successfully:', createdProfileData);
-              // Ensure default_currency is set, though it should be from insert
               const newProfile = createdProfileData as UserProfile;
               if (!newProfile.default_currency) {
                 newProfile.default_currency = 'USD';
@@ -142,7 +139,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     fetchProfile();
   }, [user?.id]);
 
-  // Generic handler for auth operations to reduce boilerplate
   const handleAuthOperation = async (
     operation: () => Promise<Partial<AuthResponse>>
   ): Promise<AuthError | null> => {
@@ -152,15 +148,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const response = await operation();
       const opError = response.error;
       if (opError) {
-        setError(opError); // Still set context error
-        return opError;   // Return error for local handling
+        setError(opError);
+        return opError;
       }
-      return null; // Success
+      return null;
     } catch (e) {
       const caughtError = e as AuthError;
       console.error('Auth operation error:', caughtError.message);
       setError(caughtError);
-      return caughtError; // Return caught error
+      return caughtError;
     } finally {
       setLoading(false);
     }
@@ -171,9 +167,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const signUpNewUser = async (credentials: SignUpWithPasswordCredentials): Promise<AuthError | null> => {
-    // Note: Supabase by default sends a confirmation email for signUp.
-    // Profile creation is typically handled via a database trigger on `auth.users` table insertion
-    // or in a subsequent step after email confirmation.
     return await handleAuthOperation(() => supabase.auth.signUp(credentials));
   };
 
@@ -185,13 +178,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (response.error) {
         throw response.error;
       }
-      // On web, signInWithOAuth typically redirects. For mobile, it might return session data directly
-      // or require handling a deep link. This example assumes the JS library handles it.
       return response;
     } catch (e) {
       console.error('OAuth sign-in error:', (e as AuthError).message);
       setError(e as AuthError);
-      // Rethrow to allow calling component to handle OAuth specific flows or errors if necessary
       throw e; 
     } finally {
       setLoading(false);
@@ -200,7 +190,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const signOut = async () => {
     await handleAuthOperation(() => supabase.auth.signOut());
-    setProfile(null); // Clear profile on sign out
+    setProfile(null);
   };
 
   const clearError = () => {

@@ -8,7 +8,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { AuthStackParamList } from '@/navigation/AuthNavigator';
 import { ROUTES } from '@/constants/routes';
 import { signupScreenStrings } from '@/constants/strings';
-// import { commonStyles } from '@/styles/common';
 
 type SignupScreenProps = NativeStackScreenProps<AuthStackParamList, typeof ROUTES.SIGNUP>;
 
@@ -32,9 +31,6 @@ export const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
         'Signup Successful',
         'Please check your email to confirm your account.'
       );
-      // Navigation to login or directly to app (after confirmation) can be handled here
-      // or by AppNavigator based on auth state changes.
-      // For now, let's navigate to login after signup attempt.
       navigation.navigate(ROUTES.LOGIN);
     }
   };

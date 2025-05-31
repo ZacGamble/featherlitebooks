@@ -165,13 +165,13 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.inputBackground, // Ensure this color is defined
+    backgroundColor: colors.inputBackground,
     borderRadius: 8,
     paddingHorizontal: 10,
     marginHorizontal: 15,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: colors.borderLight, // Ensure this color is defined
+    borderColor: colors.borderLight,
   },
   searchIcon: { marginRight: 8 },
   searchInput: {

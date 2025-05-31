@@ -6,14 +6,12 @@ declare module 'react-native-html-to-pdf' {
     width?: number;
     height?: number;
     base64?: boolean;
-    padding?: number; // iOS only
-    // Add other options as needed based on library documentation
+    padding?: number;
   }
 
   export interface File {
     filePath: string;
     base64?: string;
-    // Add other properties as needed
   }
 
   const RNHTMLtoPDF: {

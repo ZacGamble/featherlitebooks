@@ -72,5 +72,3 @@ export const deleteInventoryItem = async (itemId: string): Promise<{ error: Post
     .eq('id', itemId);
   return { error };
 };
-
-// Add more specific functions as needed, e.g., search, filter by category, adjust stock levels. 

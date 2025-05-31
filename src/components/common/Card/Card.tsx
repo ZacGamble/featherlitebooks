@@ -6,7 +6,6 @@ interface CardProps {
   children: React.ReactNode;
   style?: ViewStyle;
   onPress?: () => void;
-  // Add other card-specific props like elevation, shadow, etc. if needed
 }
 
 const Card: React.FC<CardProps> = ({ children, style, onPress }) => {
@@ -32,14 +31,12 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: 10,
     padding: 15,
-    // Shadow for iOS
     shadowColor: colors.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    // Elevation for Android
     elevation: 3,
-    marginVertical: 8, // Example margin, adjust as needed
+    marginVertical: 8,
   },
 });
 

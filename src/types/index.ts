@@ -1,6 +1,6 @@
 /**
  * This file contains the core TypeScript types for the application entities.
- * These types should mirror the structure of your Supabase tables.
+ * These types should mirror the structure of the Supabase tables.
  */
 
 // --- Profile Type ---

@@ -9,7 +9,6 @@ interface HeaderProps {
   canGoBack?: boolean;
   rightIconName?: keyof typeof Ionicons.glyphMap;
   onRightIconPress?: () => void;
-  // Add more props like custom left/right components if needed
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -47,15 +46,13 @@ const Header: React.FC<HeaderProps> = ({
 
 const styles = StyleSheet.create({
   safeArea: {
-    backgroundColor: colors.surface, // Or your header background color
-    // borderBottomWidth: StyleSheet.hairlineWidth,
-    // borderBottomColor: colors.border,
+    backgroundColor: colors.surface,
   },
   container: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    height: 56, // Standard header height
+    height: 56,
     paddingHorizontal: 10,
     backgroundColor: colors.surface,
      borderBottomWidth: StyleSheet.hairlineWidth,
@@ -66,7 +63,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   titleContainer: {
-    flex: 3, // Give more space to title
+    flex: 3,
     alignItems: 'center',
   },
   rightContainer: {

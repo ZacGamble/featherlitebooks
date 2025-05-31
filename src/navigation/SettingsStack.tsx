@@ -8,7 +8,6 @@ import { colors } from '@/constants/colors';
 export type SettingsStackParamList = {
   [ROUTES.SETTINGS]: undefined;
   [ROUTES.PROFILE]: undefined;
-  // Add other settings-related screens here if needed
 };
 
 const Stack = createNativeStackNavigator<SettingsStackParamList>();

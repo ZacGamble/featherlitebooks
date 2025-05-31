@@ -3,8 +3,8 @@ import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import ScreenContainer from '@/components/layout/ScreenContainer';
 import ListItem from '@/components/common/ListItem/ListItem';
-import Button from '@/components/common/Button/Button'; // For Sign Out
-import { SettingsStackParamList } from '@/navigation/AppTabs'; // Correct ParamList for Settings stack
+import Button from '@/components/common/Button/Button';
+import { SettingsStackParamList } from '@/navigation/SettingsStack';
 import { ROUTES } from '@/constants/routes';
 import { useAuth } from '@/hooks/useAuth';
 import { colors } from '@/constants/colors';
@@ -14,7 +14,6 @@ type SettingsScreenProps = NativeStackScreenProps<SettingsStackParamList, typeof
 export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) => {
   const { signOut, user } = useAuth();
 
-  // In a real app, these would likely come from a config or be more dynamic
   const settingsOptions = [
     {
       title: 'My Profile',
@@ -25,24 +24,16 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) =>
     {
       title: 'Appearance',
       icon: 'color-palette-outline' as const,
-      // route: ROUTES.APPEARANCE_SETTINGS, // Example for a future route
       action: () => console.log('Navigate to Appearance Settings'),
     },
     {
       title: 'Notifications',
       icon: 'notifications-outline' as const,
-      // route: ROUTES.NOTIFICATION_SETTINGS,
       action: () => console.log('Navigate to Notification Settings'),
     },
-    // {
-    //   title: 'Data & Sync',
-    //   icon: 'cloud-sync' as const,
-    //   action: () => console.log('Navigate to Data & Sync Settings'),
-    // },
     {
       title: 'About FeatherLiteBooks',
       icon: 'information-circle-outline' as const,
-      // route: ROUTES.ABOUT_APP,
       action: () => console.log('Navigate to About App Screen'),
     },
   ];
@@ -88,7 +79,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: colors.text,
     marginBottom: 10,
-    paddingHorizontal: 15, // Match ScreenContainer or ListItem horizontal padding
+    paddingHorizontal: 15,
   },
   userEmailText: {
     fontSize: 14,
@@ -100,9 +91,8 @@ const styles = StyleSheet.create({
   optionsContainer: {
     backgroundColor: colors.surface,
     borderRadius: 10,
-    marginHorizontal: 10, // Give some horizontal margin to the card-like group
-    overflow: 'hidden', // Ensures border radius is applied to ListItems inside
-     // Add shadow/elevation if you want a card-like appearance for the group
+    marginHorizontal: 10,
+    overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
@@ -112,8 +102,6 @@ const styles = StyleSheet.create({
   listItemContainer: {
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.border,
-    // Remove individual item background if optionsContainer has one
-    // backgroundColor: 'transparent', 
   },
   signOutButton: {
     marginTop: 30,

@@ -1,5 +1,5 @@
 import { supabase } from '@/config/supabase';
-import { Client } from '@/types'; // Assuming Client type is in global types
+import { Client } from '@/types';
 import { PostgrestError } from '@supabase/supabase-js';
 
 const TABLE_NAME = 'clients';
@@ -12,9 +12,9 @@ const TABLE_NAME = 'clients';
 export const getClients = async (userId: string): Promise<{ data: Client[] | null; error: PostgrestError | null }> => {
   return supabase
     .from(TABLE_NAME)
-    .select('*') // Select all fields as defined in Client type
+    .select('*')
     .eq('user_id', userId)
-    .order('name', { ascending: true }); // Example: order by name
+    .order('name', { ascending: true });
 };
 
 /**
@@ -25,7 +25,7 @@ export const getClients = async (userId: string): Promise<{ data: Client[] | nul
 export const getClientById = async (clientId: string): Promise<{ data: Client | null; error: PostgrestError | null }> => {
   return supabase
     .from(TABLE_NAME)
-    .select('*') // Select all fields
+    .select('*')
     .eq('id', clientId)
     .single();
 };
@@ -40,7 +40,7 @@ export const getClientById = async (clientId: string): Promise<{ data: Client | 
 export const createClient = async (clientData: Omit<Client, 'id' | 'created_at' | 'updated_at'>): Promise<{ data: Client | null; error: PostgrestError | null }> => {
   return supabase
     .from(TABLE_NAME)
-    .insert(clientData) // clientData now includes user_id as per Client type
+    .insert(clientData)
     .select('*')
     .single(); 
 };
@@ -66,13 +66,9 @@ export const updateClient = async (clientId: string, clientData: Partial<Omit<Cl
  * @returns A promise that resolves to an object containing an error if one occurred, or null otherwise.
  */
 export const deleteClient = async (clientId: string): Promise<{ error: PostgrestError | null }> => {
-  // Supabase delete returns an object with `data` (usually null for delete) and `error`.
-  // We only care about the error for this simplified return.
   const { error } = await supabase
     .from(TABLE_NAME)
     .delete()
     .eq('id', clientId);
   return { error };
 };
-
-// TODO: Add functions for searching clients, etc. 

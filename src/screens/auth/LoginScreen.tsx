@@ -7,7 +7,7 @@ import Button from '@/components/common/Button/Button';
 import { useAuth } from '@/hooks/useAuth';
 import { AuthStackParamList } from '@/navigation/AuthNavigator';
 import { ROUTES } from '@/constants/routes';
-import { appStrings, loginScreenStrings } from '@/constants/strings';
+import { loginScreenStrings } from '@/constants/strings';
 
 type LoginScreenProps = NativeStackScreenProps<AuthStackParamList, typeof ROUTES.LOGIN>;
 
@@ -22,7 +22,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     if (signInError) {
       Alert.alert(loginScreenStrings.loginErrorTitle || 'Login Failed', signInError.message);
     }
-    // Navigation to AppTabs will be handled by AuthContext state change via AppNavigator
   };
 
   return (

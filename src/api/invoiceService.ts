@@ -41,7 +41,6 @@ export const getInvoiceById = async (invoiceId: string): Promise<{ data: Invoice
 
 /**
  * Creates a new invoice and its associated line items.
- * NOTE: This operation involves multiple database calls. For atomicity, consider creating a Supabase RPC function (database transaction).
  * @param invoiceData The data for the new invoice (excluding id, created_at, updated_at, client, line_items).
  * @param lineItemsData An array of line item data (excluding id, invoice_id, created_at, updated_at, inventory_item).
  * @returns A promise that resolves to an object containing the newly created invoice data (with line items) or an error.
@@ -50,7 +49,6 @@ export const createInvoice = async (
   invoiceData: Omit<Invoice, 'id' | 'created_at' | 'updated_at' | 'client' | 'line_items'>,
   lineItemsData: Omit<InvoiceLineItem, 'id' | 'invoice_id' | 'created_at' | 'updated_at' | 'inventory_item'>[]
 ): Promise<{ data: Invoice | null; error: PostgrestError | null }> => {
-  // 1. Create the main invoice record
   const { data: newInvoice, error: invoiceError } = await supabase
     .from(INVOICES_TABLE)
     .insert(invoiceData)
@@ -61,12 +59,11 @@ export const createInvoice = async (
     return { data: null, error: invoiceError };
   }
 
-  // 2. If invoice creation was successful, prepare and create line items
   if (newInvoice && lineItemsData && lineItemsData.length > 0) {
     const lineItemsToInsert = lineItemsData.map(item => ({
       ...item,
       invoice_id: newInvoice.id,
-      user_id: newInvoice.user_id, // Ensure user_id is set for line items as per schema
+      user_id: newInvoice.user_id,
     }));
 
     const { data: insertedLineItems, error: lineItemsError } = await supabase
@@ -75,20 +72,13 @@ export const createInvoice = async (
       .select();
 
     if (lineItemsError) {
-      // Optional: Attempt to delete the just-created invoice if line items fail, for pseudo-rollback
-      // await supabase.from(INVOICES_TABLE).delete().eq('id', newInvoice.id); 
-      // This is not a true rollback. An RPC function is better.
       return { data: null, error: lineItemsError };
     }
-    // Attach line items to the returned invoice object
     (newInvoice as Invoice).line_items = insertedLineItems as InvoiceLineItem[];
   } else {
     (newInvoice as Invoice).line_items = [];
   }
   
-  // To include client details in the response, we'd need another fetch or ensure invoiceData contained it.
-  // For simplicity, returning newInvoice as is, which might not have populated client object.
-  // A follow-up getInvoiceById(newInvoice.id) would provide the full details.
   return { data: newInvoice as Invoice, error: null };
 };
 
@@ -125,7 +115,6 @@ export const updateInvoice = async (
  * @returns A promise that resolves to an object containing an error if one occurred.
  */
 export const deleteInvoice = async (invoiceId: string): Promise<{ error: PostgrestError | null }> => {
-  // 1. Delete associated line items
   const { error: lineItemsError } = await supabase
     .from(LINE_ITEMS_TABLE)
     .delete()
@@ -135,7 +124,6 @@ export const deleteInvoice = async (invoiceId: string): Promise<{ error: Postgre
     return { error: lineItemsError };
   }
 
-  // 2. Delete the main invoice
   const { error: invoiceError } = await supabase
     .from(INVOICES_TABLE)
     .delete()
@@ -143,9 +131,6 @@ export const deleteInvoice = async (invoiceId: string): Promise<{ error: Postgre
 
   return { error: invoiceError };
 };
-
-
-// --- Invoice Line Item Specific Functions ---
 
 /**
  * Adds multiple line items to an existing invoice.
@@ -205,8 +190,3 @@ export const getLineItemsForInvoice = async (invoiceId: string): Promise<{ data:
     .select('*')
     .eq('invoice_id', invoiceId);
 };
-
-// Further considerations:
-// - Batch updates/deletes for line items if needed.
-// - RPC functions for transactional create/update of invoices with line items.
-// - More specific query functions (e.g., getInvoicesByStatus, getInvoicesForClient). 

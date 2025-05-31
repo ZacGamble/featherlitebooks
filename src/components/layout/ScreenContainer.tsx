@@ -6,15 +6,14 @@ interface ScreenContainerProps {
   children: React.ReactNode;
   style?: ViewStyle;
   scrollable?: boolean;
-  safeArea?: boolean; // Use SafeAreaView for top/bottom padding on iOS
-  // Add other layout-specific props like backgroundColor, padding, etc.
+  safeArea?: boolean;
 }
 
 const ScreenContainer: React.FC<ScreenContainerProps> = ({
   children,
   style,
   scrollable = false,
-  safeArea = true, // Default to true for better mobile experience
+  safeArea = true,
 }) => {
   const ContainerComponent = scrollable ? ScrollView : View;
   const baseStyle = scrollable ? styles.scrollableBase : styles.containerBase;
@@ -39,16 +38,16 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.background, // Apply background to SafeAreaView for consistency
+    backgroundColor: colors.background,
   },
   containerBase: {
     flex: 1,
     backgroundColor: colors.background,
-    paddingHorizontal: 15, // Default padding, can be overridden by style prop
+    paddingHorizontal: 15,
     paddingVertical: 10,
   },
   scrollableBase: {
-    flexGrow: 1, // Ensures ScrollView content can expand
+    flexGrow: 1,
     backgroundColor: colors.background,
     paddingHorizontal: 15,
     paddingVertical: 10,

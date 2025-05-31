@@ -1,23 +1,23 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { ScreenContainer } from '@/components/layout/ScreenContainer';
-import { Button } from '@/components/common/Button/Button';
-import { APP_STRINGS } from '@/constants/strings';
+import ScreenContainer from '@/components/layout/ScreenContainer';
+import Button from '@/components/common/Button/Button';
+import { appStrings } from '@/constants/strings';
 import { ROUTES } from '@/constants/routes';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { AuthStackParamList } from '@/navigation/AuthNavigator'; // Assuming this navigator handles routes after landing
+import { AuthStackParamList } from '@/navigation/AuthNavigator';
 
-type LandingScreenProps = NativeStackScreenProps<AuthStackParamList, typeof ROUTES.AUTH.LOGIN>; // Or a dedicated PublicStackParamList
+type LandingScreenProps = NativeStackScreenProps<AuthStackParamList, typeof ROUTES.AUTH.LOGIN>;
 
 export const LandingScreen: React.FC<LandingScreenProps> = ({ navigation }) => {
   return (
     <ScreenContainer>
       <View style={styles.container}>
-        <Text style={styles.title}>{APP_STRINGS.appName}</Text>
+        <Text style={styles.title}>{appStrings.appName}</Text>
         <Text style={styles.subtitle}>Welcome to your lightweight business companion.</Text>
         <Button
           title="Get Started"
-          onPress={() => navigation.navigate(ROUTES.AUTH.LOGIN)} // Or Signup
+          onPress={() => navigation.navigate(ROUTES.AUTH.LOGIN)}
           style={styles.button}
         />
         <Button

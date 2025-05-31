@@ -75,5 +75,3 @@ export const deleteExpense = async (expenseId: string): Promise<{ error: Postgre
     .eq('id', expenseId);
   return { error };
 };
-
-// Add more specific functions as needed, e.g., filter by category, date range, sum expenses. 

@@ -9,10 +9,10 @@ module.exports = {
   collectCoverageFrom: [
     'src/**/*.{ts,tsx}',
     '!src/**/*.test.{ts,tsx}',
-    '!src/types/**/*', // Exclude type definition files
-    '!src/navigation/**/*', // Usually, navigation setup is hard to unit test effectively without significant mocking
-    '!src/config/**/*', // Config files
-    '!src/constants/**/*', // Constants files
+    '!src/types/**/*',
+    '!src/navigation/**/*',
+    '!src/config/**/*',
+    '!src/constants/**/*',
   ],
   coverageReporters: ['json', 'lcov', 'text', 'clover'],
   moduleNameMapper: {

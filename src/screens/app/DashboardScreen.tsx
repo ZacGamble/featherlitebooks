@@ -10,12 +10,12 @@ import {
   TextInput,
   Platform,
 } from 'react-native';
-import { NativeStackScreenProps } from '@react-navigation/native-stack'; // Or BottomTabScreenProps if used directly in tabs
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import ScreenContainer from '@/components/layout/ScreenContainer';
 import Card from '@/components/common/Card/Card';
 import Button from '@/components/common/Button/Button';
 import { useAuth } from '@/hooks/useAuth';
-import { AppTabsParamList } from '@/navigation/AppTabs'; // Corrected import
+import { AppTabsParamList } from '@/navigation/AppTabs';
 import { ROUTES } from '@/constants/routes';
 import { appStrings } from '@/constants/strings';
 import { colors } from '@/constants/colors';
@@ -23,30 +23,22 @@ import * as dashboardService from '@/api/dashboardService';
 import { Ionicons } from '@expo/vector-icons';
 import { format, subMonths, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns';
 import RNHTMLtoPDF from 'react-native-html-to-pdf';
-import jsPDF from 'jspdf'; // Import jsPDF
+import jsPDF from 'jspdf';
 
-// If Dashboard is a direct screen in AppTabs, use BottomTabScreenProps
-// from '@react-navigation/bottom-tabs'. If it's part of a stack within a tab, adjust accordingly.
-// For this example, assuming it could be navigated to from various places or is a simple tab screen.
-// Using AppTabParamList which is defined in AppTabs.tsx
 type DashboardScreenProps = NativeStackScreenProps<AppTabsParamList, typeof ROUTES.DASHBOARD>;
 
-// Define the structure for each metric card
 interface MetricCardData {
   id: string;
   title: string;
   value: string | number | null;
-  unit?: string; // e.g., 'USD', 'Clients', 'Items'
-  description?: string; // For more complex data like top item name
+  unit?: string;
+  description?: string;
   isLoading: boolean;
   error: string | null;
   isMonetary?: boolean;
   fetcher: (userId: string) => Promise<any>;
 }
 
-// const formatDateForSupabase = (date: Date): string => format(date, 'yyyy-MM-dd');
-
-// Helper to format currency
 const formatCurrency = (value: number | null | undefined, defaultCurrency: string | undefined = 'USD') => {
   if (value === null || typeof value === 'undefined') return 'N/A';
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: defaultCurrency || 'USD' }).format(value);
@@ -57,7 +49,6 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   const [metrics, setMetrics] = useState<MetricCardData[]>([]);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   
-  // Ref to track if initial metrics for the current dep set have been loaded
   const hasLoadedForCurrentDepsRef = useRef<boolean>(false);
 
   const initialMetricsSetup = useCallback((userId: string, defaultCurrency: string | undefined): MetricCardData[] => [
@@ -108,7 +99,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     },
     {
       id: 'newInvoicesThisMonth',
-      title: 'New Invoices (This Month)',
+      title: 'New Invoices',
       value: null,
       unit: 'Invoices',
       isLoading: true,
@@ -158,7 +149,6 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   }, [initialMetricsSetup, fetchMetricData]);
 
   useEffect(() => {
-    // Log current state of dependencies EACH time this effect callback runs
     console.log('DashboardScreen useEffect triggered:',
       {
         userId: user?.id,
@@ -188,7 +178,6 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     return () => {
       console.log('DashboardScreen: useEffect cleanup - resetting hasLoadedForCurrentDepsRef.current to false.',
         {
-          // Optional: Log deps again to see what they were when cleanup was scheduled
           userId_cleanup: user?.id,
           defaultCurrency_cleanup: profile?.default_currency
         }
@@ -269,10 +258,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         Alert.alert('Error', 'Could not generate dashboard PDF for web.');
       }
     } else {
-      // Native PDF generation using RNHTMLtoPDF
       try {
-        // HTML generation for native needs to be defined here if different from web
-        // For now, reusing a simplified HTML structure that RNHTMLtoPDF can handle
         const htmlContent = `
         <html>
           <head><style>body { font-family: Helvetica, Arial, sans-serif; margin: 25px; } h1 { font-size: 18px; } h2 { font-size: 16px; } p { font-size: 14px; }</style></head>
@@ -392,14 +378,14 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: 8,
     padding: 15,
-    width: '48%', // Two cards per row with a little space
+    width: '48%',
     marginBottom: 15,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 2,
-    minHeight: 100, // Ensure cards have some minimum height
+    minHeight: 100,
     justifyContent: 'space-between',
   },
   cardTitle: {
@@ -413,7 +399,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: colors.primary,
     textAlign: 'center',
-    flexWrap: 'wrap', // allow wrapping for long strings like top item
+    flexWrap: 'wrap',
   },
   errorText: {
     fontSize: 12,

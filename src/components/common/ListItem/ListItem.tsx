@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ViewStyle, TextStyle } from 'react-native';
 import { colors } from '@/constants/colors';
-import { Ionicons } from '@expo/vector-icons'; // Example icon library
+import { Ionicons } from '@expo/vector-icons';
 
 interface ListItemProps {
   title: string;
@@ -14,7 +14,7 @@ interface ListItemProps {
   containerStyle?: ViewStyle;
   titleStyle?: TextStyle;
   subtitleStyle?: TextStyle;
-  children?: React.ReactNode; // For custom content on the right or below
+  children?: React.ReactNode;
 }
 
 const ListItem: React.FC<ListItemProps> = ({

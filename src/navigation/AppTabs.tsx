@@ -5,33 +5,20 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/constants/colors';
 import { ROUTES } from '@/constants/routes';
 
-// Import Stacks
-import { ClientStack } from './ClientStack'; // Assuming ClientStackParamList is not directly needed here
+import { ClientStack } from './ClientStack';
 import { InventoryStack } from './InventoryStack';
 import { InvoiceStack } from './InvoiceStack';
-import { ExpenseStack } from './ExpenseStack'; // Added ExpenseStack import
-import DashboardScreen from '@/screens/app/DashboardScreen'; // Uncommented and corrected import
-import { SettingsStack } from './SettingsStack'; // Uncommented and corrected import (named)
-
-// Placeholder/Example for other stacks/screens if needed
-// import { DashboardScreen } from '@/screens/app/DashboardScreen';
-// import { ReportsScreen } from '@/screens/app/ReportsScreen';
-// import { SettingsStack } from './SettingsStack';
-
-// Define ParamLists for each stack that might be needed by the Tab Navigator directly
-// If the stacks manage their own params internally and the tab only navigates to the stack itself,
-// explicit param lists here might not be necessary beyond `undefined` or NavigatorScreenParams.
-// For simplicity, if AppTabs only routes to the *Stack* and not specific screens *within* the stack,
-// we can simplify. However, if we need to pass params *to* the stack or its initial screen from AppTabs,
-// then we'd use NavigatorScreenParams<ClientStackParamList> etc.
+import { ExpenseStack } from './ExpenseStack';
+import DashboardScreen from '@/screens/app/DashboardScreen';
+import { SettingsStack } from './SettingsStack';
 
 export type AppTabsParamList = {
-  [ROUTES.DASHBOARD]: undefined; // Uncommented
-  [ROUTES.CLIENTS_STACK]: undefined; // Navigates to the ClientStack navigator
-  [ROUTES.INVENTORY_STACK]: undefined; // Navigates to the InventoryStack navigator
-  [ROUTES.INVOICES_STACK]: undefined; // Navigates to the InvoiceStack navigator
-  [ROUTES.EXPENSES_STACK]: undefined; // Navigates to the ExpenseStack navigator
-  [ROUTES.SETTINGS_STACK]: undefined; // Uncommented
+  [ROUTES.DASHBOARD]: undefined;
+  [ROUTES.CLIENTS_STACK]: undefined;
+  [ROUTES.INVENTORY_STACK]: undefined;
+  [ROUTES.INVOICES_STACK]: undefined;
+  [ROUTES.EXPENSES_STACK]: undefined;
+  [ROUTES.SETTINGS_STACK]: undefined;
 };
 
 const Tab = createMaterialTopTabNavigator<AppTabsParamList>();
@@ -47,19 +34,18 @@ const AppTabs: React.FC = () => {
     tabBarInactiveTintColor: colors.textSecondary,
     tabBarStyle: {
       backgroundColor: colors.surface,
-      paddingTop: insets.top, // Adjust for status bar
+      paddingTop: insets.top,
     },
-    tabBarScrollEnabled: false, // Ensure all tabs are visible
+    tabBarScrollEnabled: false,
   };
 
   return (
     <Tab.Navigator
-      initialRouteName={ROUTES.DASHBOARD} // Changed default to Dashboard
+      initialRouteName={ROUTES.DASHBOARD}
       screenOptions={({ route }) => ({
-        ...screenOptions, // Apply the base screenOptions
+        ...screenOptions,
         tabBarIcon: ({ focused, color }) => {
-          // Simplified icon logic for debugging
-          let iconName: keyof typeof Ionicons.glyphMap = 'ellipse-outline'; // Default icon
+          let iconName: keyof typeof Ionicons.glyphMap = 'ellipse-outline';
           if (route.name === ROUTES.DASHBOARD) {
             iconName = focused ? 'speedometer' : 'speedometer-outline';
           } else if (route.name === ROUTES.CLIENTS_STACK) {

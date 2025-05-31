@@ -14,7 +14,6 @@ import { format, parseISO } from 'date-fns';
 
 type Props = NativeStackScreenProps<ExpenseStackParamList, typeof ROUTES.EXPENSE_DETAIL>;
 
-// Sub-component for displaying individual detail items (similar to InvoiceDetailScreen)
 interface DetailDisplayItemProps {
   label: string;
   value?: string | null | number;
@@ -82,7 +81,7 @@ export const ExpenseDetailScreen: React.FC<Props> = ({ navigation, route }) => {
   useFocusEffect(
     useCallback(() => {
       fetchExpenseDetails();
-      return () => {}; // Ensure a cleanup function is returned
+      return () => {};
     }, [fetchExpenseDetails])
   );
 

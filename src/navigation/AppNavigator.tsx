@@ -3,21 +3,15 @@ import { NavigationContainer } from '@react-navigation/native';
 import { useAuth } from '@/auth/AuthContext';
 import AuthNavigator from './AuthNavigator';
 import AppTabs from './AppTabs';
-import PublicNavigator from './PublicNavigator'; // Assuming LandingScreen is the entry
-import LoadingIndicator from '@/components/common/LoadingIndicator'; // A simple loading spinner
-import { ROUTES } from '@/constants/routes';
+import LoadingIndicator from '@/components/common/LoadingIndicator';
 
 const linking = {
-  prefixes: ['featherlitebooks://', 'exp://'], // Add your app's custom scheme
+  prefixes: ['featherlitebooks://', 'exp://'],
   config: {
     screens: {
-      // Map your route names to URL paths
-      // Public routes
       Landing: 'landing',
-      // Auth routes
       Login: 'login',
       Signup: 'signup',
-      // AppTab routes (nested)
       AppTabs: {
         path: 'app',
         screens: {
@@ -56,7 +50,7 @@ const linking = {
           }
         },
       },
-      NotFound: '*', // Catch-all for unmatched routes
+      NotFound: '*',
     },
   },
 };
@@ -65,14 +59,8 @@ const AppNavigator = () => {
   const { session, loadingInitial, user } = useAuth();
 
   if (loadingInitial) {
-    // Show a loading screen while checking auth state, possibly with your app logo
-    // This prevents a flash of the login screen or public screen before auth state is known.
     return <LoadingIndicator fullScreen={true} text="Initializing FeatherLiteBooks..." />;
   }
-
-  // The PublicNavigator is the outermost layer if you want a landing page accessible to all.
-  // From the LandingScreen, users would typically navigate to Login or Signup, which are part of AuthNavigator.
-  // If a session exists, we bypass Public/Auth navigators and go straight to AppTabs.
 
   return (
     <NavigationContainer linking={linking} fallback={<LoadingIndicator fullScreen={true} />}>

@@ -21,7 +21,6 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
   const [username, setUsername] = useState(profile?.username || '');
   const [fullName, setFullName] = useState(profile?.full_name || '');
   const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url || '');
-  // Add other editable profile fields here, e.g., website
 
   const [loading, setLoading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -51,14 +50,13 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
     setLoading(true);
     setFormError(null);
     setSuccessMessage(null);
-    if (authError) clearError(); // Clear global auth error if any
+    if (authError) clearError();
 
     const updates: Partial<UserProfile> = {
-      id: user.id, // This should typically not be updated by the user directly but is part of the record
+      id: user.id,
       username,
       full_name: fullName,
       avatar_url: avatarUrl,
-      // updated_at: new Date().toISOString(), // Supabase handles this automatically
     };
 
     // try {
@@ -87,7 +85,6 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
         
         <Card style={styles.profileCard}>
             <Text style={styles.emailText}>Email: {user?.email || 'Not available'}</Text>
-            {/* Avatar placeholder - In a real app, use an Image component and image picker */}
             <View style={styles.avatarPlaceholder}>
                 <Text>{avatarUrl ? 'Avatar Set' : 'No Avatar'}</Text>
             </View>
@@ -116,8 +113,6 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
                 autoCapitalize="none"
                 keyboardType="url"
             />
-            {/* Add more inputs for other profile fields */}
-
             <Button 
                 title="Update Profile"
                 onPress={handleUpdateProfile} 

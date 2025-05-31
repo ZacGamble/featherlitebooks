@@ -25,16 +25,11 @@ describe('Card', () => {
   });
 
   it('does not call onPress if not provided and card is pressed (and is not pressable)', () => {
-    // This test is a bit conceptual as non-pressable View won't trigger press by default
-    // But it ensures no errors if onPress is undefined.
     const { getByText } = render(
       <Card>
         <Text>Non-Pressable</Text>
       </Card>
     );
-    // Attempting to press the text within the card
-    // RNTL might wrap it in a way that makes it seem pressable, but the Card itself isn't using TouchableOpacity here.
-    // The main check is that no error occurs.
     expect(() => fireEvent.press(getByText('Non-Pressable'))).not.toThrow();
   });
 }); 
