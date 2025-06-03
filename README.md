@@ -223,3 +223,7 @@ B.  Design and develop a fully functional full stack (mobile or web) software pr
 ●  **search functionality with multiple row results and displays**
 
     *   You can see our search functionality in action on the list screens, for instance, the `ExpenseListScreen.tsx`. There's a search bar where users can type what they're looking for. As they type, the app filters the list of expenses on the fly, checking fields like name, category, and vendor. The matching expenses are then shown in a clear, scrollable list, with each item neatly displaying its key details.
+
+●  **a database component with the functionality to securely add, modify, and delete the data**
+
+    *   Our database is powered by Supabase (which uses PostgreSQL). We've set up API services in the `src/api/` folder (like `clientService.ts` and `expenseService.ts`) that handle all the adding, updating, and deleting of data. For example, `createExpense(data)` adds a new expense, and `deleteInventoryItem(itemId)` removes an inventory item. To keep things secure, we use Supabase's Row Level Security, so users can only touch their own data. Plus, API keys are stored safely as environment variables, and all communication with Supabase is encrypted over HTTPS.
