@@ -1,5 +1,3 @@
-<strong>**DO NOT DISTRIBUTE OR PUBLICLY POST SOLUTIONS TO THESE LABS. MAKE ALL FORKS OF THIS REPOSITORY WITH SOLUTION CODE PRIVATE. PLEASE REFER TO THE STUDENT CODE OF CONDUCT AND ETHICAL EXPECTATIONS FOR COLLEGE OF INFORMATION TECHNOLOGY STUDENTS FOR SPECIFICS. **</strong>
-
 # FeatherLiteBooks
 
 **A lightweight ERP and accounting web application for small business owners to manage inventory, sales (invoicing), expenses, and basic accounting. FeatherLiteBooks aims to replace spreadsheets and complex enterprise software by offering clarity and efficiency.**
@@ -22,7 +20,7 @@ Repository: GitLab (Private/Link to be added)
 - [Supabase Integration](#supabase-integration)
 - [Figma Mockup Mapping](#figma-mockup-mapping)
 - [Further Development Notes](#further-development-notes)
-
+- [Task Requirements](#task-requirements)
 ---
 
 **Project-Specific Guidance Incorporated:**
@@ -200,26 +198,6 @@ Test files (`*.test.tsx`) are co-located with their source files.
 
 ---
 
-## Figma Mockup Mapping
-
-This section maps the generated screen components to the provided Figma mockups (`ApplicationFigmaDoc.pdf`):
-
--   `src/screens/public/LandingScreen.tsx`: Implements **Page 1** (Landing Page).
--   `src/screens/auth/LoginScreen.tsx`: Implements **Page 2** (Login Screen, name corrected to FeatherLiteBooks).
--   `src/screens/app/DashboardScreen.tsx`: Implements **Page 3** (Dashboard).
--   `src/screens/app/inventory/InventoryListScreen.tsx`: Implements **Page 4** (Inventory List).
--   `src/screens/app/inventory/InventoryFormScreen.tsx`: Implements **Page 5** (Add Inventory Form).
--   `src/screens/app/invoices/InvoiceListScreen.tsx`: Implements **Page 6** (Invoices List).
--   `src/screens/app/invoices/InvoiceFormScreen.tsx`: Implements **Page 7** (New Invoice Form, includes client selection).
--   `src/screens/app/expenses/ExpenseListScreen.tsx`: Implements **Page 8** (Expenses List).
--   `src/screens/app/expenses/ExpenseFormScreen.tsx`: Implements **Page 9** (New Expense Form).
--   `src/screens/app/ReportsScreen.tsx`: Implements **Page 10** (Reports Configuration/Display).
--   `src/screens/app/SettingsScreen.tsx`: Implements **Page 11** (Settings).
-
-Other screens like `SignupScreen`, `ForgotPasswordScreen`, and detail screens are based on these designs and common app patterns.
-
----
-
 ## Further Development Notes
 
 -   **State Management:** For global state beyond authentication (e.g., complex form states, shared data across tabs), consider using Zustand or Redux Toolkit. A placeholder `README.md` is in `src/state/`.
@@ -229,23 +207,14 @@ Other screens like `SignupScreen`, `ForgotPasswordScreen`, and detail screens ar
 
 ---
 
-This `README.md` provides a starting point. Please update it as the project evolves.
+## Task Requirements
 
-## SUPPLEMENTAL RESOURCES  
-1.	How to clone a project to IntelliJ using Git?
+B.  Design and develop a fully functional full stack (mobile or web) software product that addresses your identified business problem or organizational need. Include each of the following attributes, as they are the minimum required elements for the application:
 
-> Ensure that you have Git installed on your system and that IntelliJ is installed using [Toolbox](https://www.jetbrains.com/toolbox-app/). Make sure that you are using version 2022.3.2. Once this has been confirmed, click the clone button and use the 'IntelliJ IDEA (HTTPS)' button. This will open IntelliJ with a prompt to clone the proejct. Save it in a safe location for the directory and press clone. IntelliJ will prompt you for your credentials. Enter in your WGU Credentials and the project will be cloned onto your local machine.  
+●  **code including inheritance, polymorphism, and encapsulation**
 
-2. How to create a branch and start Development?
+    *   For encapsulation, the API services (like `src/api/expenseService.ts`) neatly bundle up the database interaction logic, so the rest of the app doesn't need to worry about the nitty-gritty of Supabase calls. Similarly, the React components (like `src/screens/app/expenses/ExpenseFormScreen.tsx`) keep their own state and logic tucked away, and custom hooks like `useAuth` (`src/auth/AuthContext.tsx`) hide complex authentication details behind a simple interface.
 
-- GitLab method
-> Press the '+' button located near your branch name. In the dropdown list, press the 'New branch' button. This will allow you to create a name for your branch. Once the branch has been named, you can select 'Create Branch' to push the branch to your repository.
+    *   Inheritance is shown in `src/types/index.ts`. I created `BaseRecord` and `UserSpecificRecord` interfaces that other more specific types (like `Client`, `Expense`, `InventoryItem`) extend. This means they automatically get common fields like `id`, `created_at`, and `user_id`, which keeps types clean and organized.
 
-- IntelliJ method
-> In IntelliJ, Go to the 'Git' button on the top toolbar. Select the new branch option and create a name for the branch. Make sure checkout branch is selected and press create. You can now add a commit message and push the new branch to the local repo.
-
-## SUPPORT
-If you need additional support, please navigate to the course page and reach out to your course instructor.
-
-## FUTURE USE
-Take this opportunity to create or add to a simple resume portfolio to highlight and showcase your work for future use in career search, experience, and education!
+    *   Polymorphism is demonstrated with the `getDisplayInformation` function in `src/utils/displayUtils.ts`. This single function can cleverly handle different types of records (like a `Client` or an `Expense`). It figures out what kind of record it's dealing with and then returns display information that's specific to that type.
