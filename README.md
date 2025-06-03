@@ -231,3 +231,7 @@ B.  Design and develop a fully functional full stack (mobile or web) software pr
 ●  **ability to generate reports with multiple columns, multiple rows, date-time stamps, and title**
 
     *   The app can generate PDF reports, as seen with the "Export Dashboard to PDF" feature on the `DashboardScreen.tsx`. These reports have a clear title (like "Dashboard Summary"), a timestamp showing when they were generated, and display multiple pieces of information (like Total Revenue, Total Expenses) in a structured way with several rows and columns. We use `jsPDF` for web reports and `react-native-html-to-pdf` for native app reports.
+
+●  **validation functionality**
+
+    *   We make sure user inputs are valid before saving them. Take the `ExpenseFormScreen.tsx` for example: before submitting a new expense, the `validateForm` function checks if all required fields are filled out (like name and category) and if the data is in the right format (e.g., amount is a positive number, date is YYYY-MM-DD). If there's an issue, an error message pops up to let the user know, and the form won't submit until the errors are fixed. This approach is used for all our forms.
