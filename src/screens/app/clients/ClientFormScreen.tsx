@@ -141,14 +141,6 @@ export const ClientFormScreen: React.FC<ClientFormScreenProps> = ({ navigation, 
         <Input label="Email Address" value={email} onChangeText={setEmail} placeholder="e.g., contact@acme.com" keyboardType="email-address" autoCapitalize="none" />
         <Input label="Phone Number" value={phone} onChangeText={setPhone} placeholder="e.g., 555-123-4567" keyboardType="phone-pad" />
         <Input label="Address Line 1" value={addressLine1} onChangeText={setAddressLine1} placeholder="e.g., 123 Main St" />
-        {/* 
-          TODO: Add Input fields for other client address properties if desired:
-          <Input label="Address Line 2" value={addressLine2} onChangeText={setAddressLine2} placeholder="e.g., Suite 100" />
-          <Input label="City" value={city} onChangeText={setCity} placeholder="e.g., Anytown" />
-          <Input label="State/Province" value={stateProvince} onChangeText={setStateProvince} placeholder="e.g., CA" />
-          <Input label="Postal Code" value={postalCode} onChangeText={setPostalCode} placeholder="e.g., 90210" />
-          <Input label="Country" value={country} onChangeText={setCountry} placeholder="e.g., USA" />
-        */}
 
         <Button 
           title={isEditing ? 'Save Changes' : 'Add Client'} 

@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, TextInput, Text, StyleSheet, TextInputProps, ViewStyle, TextStyle } from 'react-native';
+import React, { useState } from 'react';
+import { View, TextInput, Text, StyleSheet, TextInputProps, ViewStyle, TextStyle, Platform } from 'react-native';
 import { colors } from '@/constants/colors';
 
 interface InputProps extends TextInputProps {
@@ -22,16 +22,49 @@ const Input: React.FC<InputProps> = ({
   errorStyle,
   leftIcon,
   rightIcon,
+  onFocus,
+  onBlur,
   ...textInputProps
 }) => {
+  const [isFocused, setIsFocused] = useState(false);
+
+  const handleFocus = (e: any) => {
+    setIsFocused(true);
+    if (onFocus) {
+      onFocus(e);
+    }
+  };
+
+  const handleBlur = (e: any) => {
+    setIsFocused(false);
+    if (onBlur) {
+      onBlur(e);
+    }
+  };
+
+  const dynamicBorderColor = error ? colors.error : isFocused ? colors.primary : colors.border;
+
+  const platformSpecificInputStyle: any = Platform.OS === 'web' ? { outlineWidth: 0 } : {};
+
   return (
     <View style={[styles.container, containerStyle]}>
       {label && <Text style={[styles.label, labelStyle]}>{label}</Text>}
-      <View style={[styles.inputContainer, error ? styles.inputContainerError : {}]}>
+      <View style={[
+        styles.inputContainer,
+        { borderColor: dynamicBorderColor },
+      ]}>
         {leftIcon}
         <TextInput
-          style={[styles.input, inputStyle, leftIcon ? styles.inputWithLeftIcon : {}, rightIcon ? styles.inputWithRightIcon : {}]}
-          placeholderTextColor={colors.gray}
+          style={[
+            styles.input, 
+            inputStyle,
+            platformSpecificInputStyle,
+            leftIcon ? styles.inputWithLeftIcon : {},
+            rightIcon ? styles.inputWithRightIcon : {}
+          ]}
+          placeholderTextColor={colors.placeholderText}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
           {...textInputProps}
         />
         {rightIcon}
@@ -53,14 +86,12 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.lightGray,
+    backgroundColor: colors.inputBackground,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: colors.border,
     paddingHorizontal: 10,
   },
   inputContainerError: {
-    borderColor: colors.error,
   },
   input: {
     flex: 1,

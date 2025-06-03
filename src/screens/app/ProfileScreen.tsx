@@ -5,7 +5,7 @@ import ScreenContainer from '@/components/layout/ScreenContainer';
 import Input from '@/components/common/Input/Input';
 import Button from '@/components/common/Button/Button';
 import Card from '@/components/common/Card/Card';
-import { SettingsStackParamList } from '@/navigation/AppTabs'; // Correct ParamList
+import { SettingsStackParamList } from '@/navigation/SettingsStack'; // Correct ParamList
 import { ROUTES } from '@/constants/routes';
 import { useAuth } from '@/hooks/useAuth';
 import { useSupabase } from '@/hooks/useSupabase';
@@ -105,14 +105,14 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
                 onChangeText={setFullName} 
                 placeholder="Your full name"
             />
-            <Input 
+            {/* <Input 
                 label="Avatar URL (Optional)"
                 value={avatarUrl} 
                 onChangeText={setAvatarUrl} 
                 placeholder="http://your-avatar.png"
                 autoCapitalize="none"
                 keyboardType="url"
-            />
+            /> */}
             <Button 
                 title="Update Profile"
                 onPress={handleUpdateProfile} 

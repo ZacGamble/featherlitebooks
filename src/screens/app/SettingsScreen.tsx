@@ -21,21 +21,21 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) =>
       route: ROUTES.PROFILE,
       action: () => navigation.navigate(ROUTES.PROFILE),
     },
-    {
-      title: 'Appearance',
-      icon: 'color-palette-outline' as const,
-      action: () => console.log('Navigate to Appearance Settings'),
-    },
-    {
-      title: 'Notifications',
-      icon: 'notifications-outline' as const,
-      action: () => console.log('Navigate to Notification Settings'),
-    },
-    {
-      title: 'About FeatherLiteBooks',
-      icon: 'information-circle-outline' as const,
-      action: () => console.log('Navigate to About App Screen'),
-    },
+    // {
+    //   title: 'Appearance',
+    //   icon: 'color-palette-outline' as const,
+    //   action: () => console.log('Navigate to Appearance Settings'),
+    // },
+    // {
+    //   title: 'Notifications',
+    //   icon: 'notifications-outline' as const,
+    //   action: () => console.log('Navigate to Notification Settings'),
+    // },
+    // {
+    //   title: 'About FeatherLiteBooks',
+    //   icon: 'information-circle-outline' as const,
+    //   action: () => console.log('Navigate to About App Screen'),
+    // },
   ];
 
   return (
