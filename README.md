@@ -222,20 +222,53 @@ B.  Design and develop a fully functional full stack (mobile or web) software pr
 
 ●  **search functionality with multiple row results and displays**
 
-    *   You can see our search functionality in action on the list screens, for instance, the `ExpenseListScreen.tsx`. There's a search bar where users can type what they're looking for. As they type, the app filters the list of expenses on the fly, checking fields like name, category, and vendor. The matching expenses are then shown in a clear, scrollable list, with each item neatly displaying its key details.
+    *   You can see the search functionality in action on the list screens, for instance, the `ExpenseListScreen.tsx`. There's a search bar where users can type what they're looking for. As they type, the app filters the list of expenses on the fly, checking fields like name, category, and vendor. The matching expenses are then shown in a clear, scrollable list, with each item neatly displaying its key details.
 
 ●  **a database component with the functionality to securely add, modify, and delete the data**
 
-    *   Our database is powered by Supabase (which uses PostgreSQL). We've set up API services in the `src/api/` folder (like `clientService.ts` and `expenseService.ts`) that handle all the adding, updating, and deleting of data. For example, `createExpense(data)` adds a new expense, and `deleteInventoryItem(itemId)` removes an inventory item. To keep things secure, we use Supabase's Row Level Security, so users can only touch their own data. Plus, API keys are stored safely as environment variables, and all communication with Supabase is encrypted over HTTPS.
+    *   The database is powered by Supabase (which uses PostgreSQL). I've set up API services in the `src/api/` folder (like `clientService.ts` and `expenseService.ts`) that handle all the adding, updating, and deleting of data. For example, `createExpense(data)` adds a new expense, and `deleteInventoryItem(itemId)` removes an inventory item. To keep things secure, I use Supabase's Row Level Security, so users can only touch their own data. Plus, API keys are stored safely as environment variables, and all communication with Supabase is encrypted over HTTPS.
 
 ●  **ability to generate reports with multiple columns, multiple rows, date-time stamps, and title**
 
-    *   The app can generate PDF reports, as seen with the "Export Dashboard to PDF" feature on the `DashboardScreen.tsx`. These reports have a clear title (like "Dashboard Summary"), a timestamp showing when they were generated, and display multiple pieces of information (like Total Revenue, Total Expenses) in a structured way with several rows and columns. We use `jsPDF` for web reports and `react-native-html-to-pdf` for native app reports.
+    *   The app can generate PDF reports, as seen with the "Export Dashboard to PDF" feature on the `DashboardScreen.tsx`. These reports have a clear title (like "Dashboard Summary"), a timestamp showing when they were generated, and display multiple pieces of information (like Total Revenue, Total Expenses) in a structured way with several rows and columns. I use `jsPDF` for web reports and `react-native-html-to-pdf` for native app reports.
 
 ●  **validation functionality**
 
-    *   We make sure user inputs are valid before saving them. Take the `ExpenseFormScreen.tsx` for example: before submitting a new expense, the `validateForm` function checks if all required fields are filled out (like name and category) and if the data is in the right format (e.g., amount is a positive number, date is YYYY-MM-DD). If there's an issue, an error message pops up to let the user know, and the form won't submit until the errors are fixed. This approach is used for all our forms.
+    *   I make sure user inputs are valid before saving them. Take the `ExpenseFormScreen.tsx` for example: before submitting a new expense, the `validateForm` function checks if all required fields are filled out (like name and category) and if the data is in the right format (e.g., amount is a positive number, date is YYYY-MM-DD). If there's an issue, an error message pops up to let the user know, and the form won't submit until the errors are fixed. This approach is used for all forms.
 
 ●  **industry-appropriate security features**
 
-    *   Security is a priority. We use Supabase Auth for secure user sign-up, login, and session management. Access to data is controlled by Supabase's Row Level Security, meaning users can only see and edit their own information. Sensitive API keys are kept out of the main code and stored in environment variables. All communication with Supabase is encrypted using HTTPS. We also validate user input on the client-side as a first defense, and Supabase handles secure password hashing so we never store plain text passwords.
+    *   Security is a priority. I use Supabase Auth for secure user sign-up, login, and session management. Access to data is controlled by Supabase's Row Level Security, meaning users can only see and edit their own information. Sensitive API keys are kept out of the main code and stored in environment variables. All communication with Supabase is encrypted using HTTPS. I also validate user input on the client-side as a first defense, and Supabase handles secure password hashing so we never store plain text passwords.
+
+
+●  **design elements that make the application scalable**
+
+    *   I've designed the app with scalability in mind. The code is broken down into logical modules (like `api`, `components`, `screens`), which makes it easier to manage and grow. I use reusable React components for the UI, which keeps things consistent and efficient. Using Supabase (a Backend as a Service) means I don't have to manage a lot of server infrastructure myself, and Supabase can scale as needed. Database interactions are handled through a service layer, so if I ever needed to change how I get data, it's easier to update. I also favor functional components and handle data fetching carefully to keep the app responsive.
+
+●  **a user-friendly, functional GUI**
+
+    *   I've focused on making the app easy and pleasant to use. Navigation is straightforward, with clear distinctions between public and private areas of the app, and top tabs for quick access to main sections like Dashboard and Expenses. Common UI elements like buttons and cards look and behave consistently. Screen layouts are designed to be intuitive, whether you're viewing a list, a detailed item, or filling out a form. The app also gives feedback like loading spinners and error messages. I've also considered how it looks on different screen sizes, especially for the web version, and used standard components that have good basic accessibility.
+ 
+
+C.  Create each of the following forms of documentation for the software product you have developed:
+
+●  a design document including a class diagram and design diagram
+
+●  link to where the web app is hosted with HTML code (if applicable)
+
+●  link to the GitLab repository of the code indicating the version included in this submission
+
+●  user guide for setting up and running the application for maintenance purposes
+
+●  user guide for running the application from a user perspective
+ 
+
+D.  Explain how the software product was tested, including the following:
+
+●  a test plan for a unit test, including screenshots
+
+●  unit test scripts
+
+●  the results of the unit tests based on the provided test plan, including screenshots
+
+●  summaries of changes resulting from completed tests

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Alert } from 'react-native';
+import { View, Text, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import ScreenContainer from '@/components/layout/ScreenContainer';
 import Input from '@/components/common/Input/Input';
@@ -8,6 +8,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { AuthStackParamList } from '@/navigation/AuthNavigator';
 import { ROUTES } from '@/constants/routes';
 import { loginScreenStrings } from '@/constants/strings';
+import { Ionicons } from '@expo/vector-icons';
+import { colors } from '@/constants/colors';
 
 type LoginScreenProps = NativeStackScreenProps<AuthStackParamList, typeof ROUTES.LOGIN>;
 
@@ -26,7 +28,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
   return (
     <ScreenContainer style={styles.container}>
-      <Text style={styles.title}>{loginScreenStrings.title}</Text>
+      <View style={styles.headerContainer}>
+        <TouchableOpacity onPress={() => navigation.navigate(ROUTES.LANDING)} style={styles.backButton}>
+          <Ionicons name="arrow-back-outline" size={28} color={colors.primary} />
+        </TouchableOpacity>
+        <Text style={styles.title}>{loginScreenStrings.title}</Text>
+        <View style={{ width: 28 }} />
+      </View>
+      
       {error && <Text style={styles.errorText}>{error.message}</Text>}
       <Input
         placeholder={loginScreenStrings.emailPlaceholder}
@@ -70,11 +79,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 20,
   },
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  backButton: {
+    padding: 5,
+  },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 30,
     textAlign: 'center',
+    flex: 1,
   },
   inputContainer: {
     marginBottom: 15,
@@ -86,7 +104,7 @@ const styles = StyleSheet.create({
     marginTop: 15,
   },
   errorText: {
-    color: 'red',
+    color: colors.error,
     textAlign: 'center',
     marginBottom: 10,
   }

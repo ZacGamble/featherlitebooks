@@ -4,8 +4,10 @@ import { ROUTES } from '@/constants/routes';
 import { LoginScreen } from '@/screens/auth/LoginScreen';
 import SignupScreen from '@/screens/auth/SignupScreen';
 import ForgotPasswordScreen from '@/screens/auth/ForgotPasswordScreen';
+import { LandingScreen } from '@/screens/public/LandingScreen';
 
 export type AuthStackParamList = {
+  [ROUTES.LANDING]: undefined;
   [ROUTES.LOGIN]: undefined;
   [ROUTES.SIGNUP]: undefined;
   [ROUTES.FORGOT_PASSWORD]: undefined;
@@ -15,7 +17,11 @@ const Stack = createNativeStackNavigator<AuthStackParamList>();
 
 const AuthNavigator = () => {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator 
+      initialRouteName={ROUTES.LANDING}
+      screenOptions={{ headerShown: false }}
+    >
+      <Stack.Screen name={ROUTES.LANDING} component={LandingScreen} />
       <Stack.Screen name={ROUTES.LOGIN} component={LoginScreen} />
       <Stack.Screen name={ROUTES.SIGNUP} component={SignupScreen} />
       <Stack.Screen name={ROUTES.FORGOT_PASSWORD} component={ForgotPasswordScreen} />
