@@ -218,3 +218,8 @@ B.  Design and develop a fully functional full stack (mobile or web) software pr
     *   Inheritance is shown in `src/types/index.ts`. I created `BaseRecord` and `UserSpecificRecord` interfaces that other more specific types (like `Client`, `Expense`, `InventoryItem`) extend. This means they automatically get common fields like `id`, `created_at`, and `user_id`, which keeps types clean and organized.
 
     *   Polymorphism is demonstrated with the `getDisplayInformation` function in `src/utils/displayUtils.ts`. This single function can cleverly handle different types of records (like a `Client` or an `Expense`). It figures out what kind of record it's dealing with and then returns display information that's specific to that type.
+
+
+●  **search functionality with multiple row results and displays**
+
+    *   You can see our search functionality in action on the list screens, for instance, the `ExpenseListScreen.tsx`. There's a search bar where users can type what they're looking for. As they type, the app filters the list of expenses on the fly, checking fields like name, category, and vendor. The matching expenses are then shown in a clear, scrollable list, with each item neatly displaying its key details.
