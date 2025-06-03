@@ -1,45 +1,62 @@
+// FeatherLiteBooks Color Scheme
+// Based on palette:
+//   Dark Red: #830808
+//   Dark Gray/Brown: #453a3c
+//   Blue: #39648d
+//   Light Gray: #b6b6b6
+//   Off-White: #fbf9f9
+
 export const colors = {
-  primary: '#007AFF', // Apple blue, vibrant and accessible
-  primaryMuted: '#7FBFFF', // Lighter shade of primary for disabled states
-  secondary: '#5AC8FA', // A lighter, complementary blue
-  accent: '#FFD60A', // A warm yellow for highlights or calls to action
+  // Core Semantic Colors from Palette
+  primary: '#39648d',        // Blue: For primary actions, buttons, active states
+  secondary: '#453a3c',      // Dark Gray/Brown: For secondary actions, alternative buttons
+  accent: '#830808',         // Dark Red: For highlights, special callouts, or important secondary actions
 
-  background: '#F2F2F7', // Off-white, common for iOS backgrounds
-  surface: '#FFFFFF',    // For card backgrounds, modal backgrounds etc.
+  // Text Colors
+  text: '#453a3c',            // Dark Gray/Brown: Main text color for readability
+  textSecondary: '#5A5A5A',   // Mid-Gray: For subtitles, less important information (WCAG AA on #fbf9f9)
+  textTertiary: '#b6b6b6',    // Light Gray: For placeholder text, hints, disabled text elements
 
-  text: '#1C1C1E',         // Dark gray for primary text, near black
-  textSecondary: '#8A8A8E', // Medium gray for subtitles, less important text
-  placeholderText: '#C7C7CD', // Light gray for input placeholders
+  // Backgrounds
+  background: '#fbf9f9',      // Off-White: Main application background
+  surface: '#ffffff',         // Pure White: For cards, modals, input backgrounds to stand out
 
-  border: '#D1D1D6',       // Standard border color
-  borderLight: '#E5E5EA',  // Lighter border for subtle divisions (NEW)
+  // Borders
+  border: '#b6b6b6',          // Light Gray: Default border color for inputs, cards
+  borderLight: '#dcdcdc',     // Lighter Gray: For subtle dividers or less prominent borders
 
-  // Status & Feedback Colors
-  error: '#FF3B30',       // Standard iOS error red
-  success: '#34C759',     // Standard iOS success green
-  warning: '#FF9500',     // Standard iOS warning orange
-  danger: '#FF3B30',       // Alias for error, or for destructive actions (NEW)
+  // Status Indicators
+  error: '#830808',           // Dark Red: For error messages, icons, and states
+  success: '#198754',         // Standard Green: For success messages and states
+  warning: '#ffc107',         // Standard Yellow/Orange: For warnings
 
-  // Grays (can be used for disabled states, backgrounds, etc.)
-  gray: '#8E8E93',        // Same as textSecondary, good general purpose gray
-  lightGray: '#E5E5EA',   // Lighter gray, useful for backgrounds or dividers
-  darkGray: '#3A3A3C',    // Darker gray
+  // UI States & Components
+  primaryMuted: '#7c9cbf',    // Lighter Blue: A muted version of primary for less emphasis or disabled primary states
+  disabled: '#b6b6b6',        // Light Gray: Color for text/icons on disabled components
+  disabledBackground: '#e9ecef', // Very Light Gray: Background for disabled buttons/inputs
+  
+  inputBackground: '#ffffff',   // Matches surface for consistency
+  placeholderText: '#b6b6b6',   // Light Gray: For input placeholders (matches textTertiary)
 
-  // Component-specific (examples)
-  buttonText: '#FFFFFF',    // White text for primary buttons
-  inputBackground: '#FFFFFF', // White background for inputs (can be same as surface)
-  // inputBackground: '#F0F0F0', // Slightly off-white for inputs
-  errorBackground: '#FFEBEE', // Light red background for error messages
+  // Base Colors
+  white: '#ffffff',
+  black: '#000000',           // Pure black, use sparingly
+  transparent: 'transparent',
+
+  // Direct Palette Access (optional, but useful for reference or specific overrides)
+  palette: {
+    darkRed: '#830808',
+    darkGrayBrown: '#453a3c',
+    blue: '#39648d',
+    lightGray: '#b6b6b6',
+    offWhite: '#fbf9f9',
+  },
 
   // Navigation & Tabs
   tabIconDefault: '#8E8E93',
   tabIconSelected: '#007AFF',
   headerBackground: '#FFFFFF',
   headerTintColor: '#007AFF',
-
-  white: '#FFFFFF',
-  black: '#000000',
-  transparent: 'transparent',
 
   // Add more specific colors based on FeatherLiteBooks branding
   // e.g. featherLiteBlue, featherLiteGreen

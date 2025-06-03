@@ -149,39 +149,14 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   }, [initialMetricsSetup, fetchMetricData]);
 
   useEffect(() => {
-    console.log('DashboardScreen useEffect triggered:',
-      {
-        userId: user?.id,
-        profileDefined: typeof profile !== 'undefined',
-        defaultCurrency: profile?.default_currency,
-        hasLoadedRef: hasLoadedForCurrentDepsRef.current
-      }
-    );
-
     if (user?.id && typeof profile?.default_currency === 'string') {
       if (!hasLoadedForCurrentDepsRef.current) {
-        console.log('DashboardScreen: Condition met (user and defaultCurrency string present), calling loadAllMetrics.');
         loadAllMetrics(user.id, profile.default_currency);
         hasLoadedForCurrentDepsRef.current = true;
-      } else {
-        console.log('DashboardScreen: Condition met, but hasLoadedRef is true, skipping loadAllMetrics.');
       }
-    } else {
-      console.log('DashboardScreen: Condition NOT met (user or profile.default_currency not ready).', {
-        userId: user?.id,
-        profileExists: !!profile,
-        defaultCurrency: profile?.default_currency,
-        isDefaultCurrencyString: typeof profile?.default_currency === 'string'
-      });
-    }
+    } 
 
     return () => {
-      console.log('DashboardScreen: useEffect cleanup - resetting hasLoadedForCurrentDepsRef.current to false.',
-        {
-          userId_cleanup: user?.id,
-          defaultCurrency_cleanup: profile?.default_currency
-        }
-      );
       hasLoadedForCurrentDepsRef.current = false;
     };
   }, [user?.id, profile?.default_currency, loadAllMetrics]);
@@ -234,7 +209,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         
         let yPos = 50;
         metrics.forEach(metric => {
-          if (yPos > 270) { // Basic pagination
+          if (yPos > 270) {
             pdf.addPage();
             yPos = 20;
           }

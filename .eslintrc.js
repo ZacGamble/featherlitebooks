@@ -47,12 +47,12 @@ module.exports = {
   },
   rules: {
     'prettier/prettier': 'error',
-    'react/prop-types': 'off', // Using TypeScript for prop types
-    'react/react-in-jsx-scope': 'off', // Not needed with React 17+ and Expo SDK 49+
+    'react/prop-types': 'off',
+    'react/react-in-jsx-scope': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     'react-native/no-unused-styles': 'warn',
     'react-native/split-platform-components': 'off',
-    'react-native/no-inline-styles': 'warn', // Encourages StyleSheet usage
+    'react-native/no-inline-styles': 'warn',
     '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
     'import/order': [
       'error',
@@ -82,9 +82,8 @@ module.exports = {
         },
       },
     ],
-    // Add any project-specific rule overrides here
   },
   globals: {
-    process: 'readonly', // For process.env access
+    process: 'readonly',
   },
 }; 

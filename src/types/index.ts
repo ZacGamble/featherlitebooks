@@ -1,6 +1,6 @@
 /**
  * This file contains the core TypeScript types for the application entities.
- * These types should mirror the structure of the Supabase tables.
+ * These types should mirror the structure of your Supabase tables.
  */
 
 // --- Profile Type ---
@@ -48,16 +48,18 @@ export interface InventoryItem {
 }
 
 // --- Expense Type ---
+export type ExpenseStatus = 'pending' | 'approved' | 'reimbursed' | 'rejected';
 export interface Expense {
   id: string; // UUID, Primary Key
   user_id: string; // UUID, FK to auth.users.id
-  expense_date: string; // DATE (renamed from date)
-  name: string; // TEXT (Added - primary name/title of the expense)
-  category: string; // TEXT (e.g., 'Meals', 'Travel', 'Software')
+  date: string; // DATE
+  category: string; // TEXT (could be FK to an expense_categories table)
+  description: string; // TEXT
   amount: number; // NUMERIC
-  vendor?: string | null; // TEXT, Nullable (renamed from vendor_name)
-  description?: string | null; // TEXT, Nullable (detailed notes)
+  vendor_name?: string | null; // TEXT, Nullable
   receipt_url?: string | null; // TEXT, Nullable (URL to stored receipt image)
+  payment_method?: string | null; // TEXT, Nullable (e.g., 'Credit Card', 'Cash')
+  status?: ExpenseStatus | null; // TEXT, Nullable (e.g., 'pending', 'approved')
   created_at: string; // TIMESTAMPTZ
   updated_at: string; // TIMESTAMPTZ
 }
