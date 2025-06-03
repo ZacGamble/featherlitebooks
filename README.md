@@ -235,3 +235,7 @@ B.  Design and develop a fully functional full stack (mobile or web) software pr
 ●  **validation functionality**
 
     *   We make sure user inputs are valid before saving them. Take the `ExpenseFormScreen.tsx` for example: before submitting a new expense, the `validateForm` function checks if all required fields are filled out (like name and category) and if the data is in the right format (e.g., amount is a positive number, date is YYYY-MM-DD). If there's an issue, an error message pops up to let the user know, and the form won't submit until the errors are fixed. This approach is used for all our forms.
+
+●  **industry-appropriate security features**
+
+    *   Security is a priority. We use Supabase Auth for secure user sign-up, login, and session management. Access to data is controlled by Supabase's Row Level Security, meaning users can only see and edit their own information. Sensitive API keys are kept out of the main code and stored in environment variables. All communication with Supabase is encrypted using HTTPS. We also validate user input on the client-side as a first defense, and Supabase handles secure password hashing so we never store plain text passwords.
