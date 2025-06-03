@@ -227,3 +227,7 @@ B.  Design and develop a fully functional full stack (mobile or web) software pr
 ●  **a database component with the functionality to securely add, modify, and delete the data**
 
     *   Our database is powered by Supabase (which uses PostgreSQL). We've set up API services in the `src/api/` folder (like `clientService.ts` and `expenseService.ts`) that handle all the adding, updating, and deleting of data. For example, `createExpense(data)` adds a new expense, and `deleteInventoryItem(itemId)` removes an inventory item. To keep things secure, we use Supabase's Row Level Security, so users can only touch their own data. Plus, API keys are stored safely as environment variables, and all communication with Supabase is encrypted over HTTPS.
+
+●  **ability to generate reports with multiple columns, multiple rows, date-time stamps, and title**
+
+    *   The app can generate PDF reports, as seen with the "Export Dashboard to PDF" feature on the `DashboardScreen.tsx`. These reports have a clear title (like "Dashboard Summary"), a timestamp showing when they were generated, and display multiple pieces of information (like Total Revenue, Total Expenses) in a structured way with several rows and columns. We use `jsPDF` for web reports and `react-native-html-to-pdf` for native app reports.
