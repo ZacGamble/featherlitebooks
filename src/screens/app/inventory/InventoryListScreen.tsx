@@ -20,7 +20,6 @@ export const InventoryListScreen: React.FC<Props> = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  // const [filterVisible, setFilterVisible] = useState(false); // Future use
 
   const { user } = useAuth();
 
@@ -74,7 +73,7 @@ export const InventoryListScreen: React.FC<Props> = ({ navigation }) => {
     />
   );
 
-  if (loading && items.length === 0) { // Show full screen loader only on initial load
+  if (loading && items.length === 0) {
     return (
       <ScreenContainer style={styles.centerAlign}>
         <ActivityIndicator size="large" color={colors.primary} />
@@ -93,16 +92,7 @@ export const InventoryListScreen: React.FC<Props> = ({ navigation }) => {
           onChangeText={setSearchQuery}
           placeholderTextColor={colors.gray}
         />
-        {/* <TouchableOpacity onPress={() => setFilterVisible(!filterVisible)} style={styles.iconButton}>
-            <Ionicons name="filter-outline" size={24} color={colors.primary} />
-        </TouchableOpacity> */}
       </View>
-
-      {/* {filterVisible && (
-        <View style={styles.filterPanel}>
-            <Text style={styles.filterText}>Inventory filter options will be here.</Text>
-        </View>
-      )} */}
       
       {error && (
           <View style={styles.inlineErrorView}>
@@ -116,7 +106,7 @@ export const InventoryListScreen: React.FC<Props> = ({ navigation }) => {
         keyExtractor={item => item.id}
         contentContainerStyle={styles.listContent}
         onRefresh={fetchItems} 
-        refreshing={loading} // Shows pull-to-refresh indicator
+        refreshing={loading}
         ListEmptyComponent={() => (
           !loading && (
             <View style={styles.emptyStateContainer}>
@@ -171,8 +161,6 @@ const styles = StyleSheet.create({
   iconButton: {
     padding: 10,
   },
-  // filterPanel: { /* ... */ },
-  // filterText: { /* ... */ },
   listContent: {
     paddingBottom: 80,
     paddingHorizontal: 10,

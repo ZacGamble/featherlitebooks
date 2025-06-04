@@ -93,4 +93,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ForgotPasswordScreen; // Added default export 
+export default ForgotPasswordScreen;

@@ -70,8 +70,8 @@ export const InvoiceFormScreen: React.FC<Props> = ({ navigation, route }) => {
                     } else if (data) {
                         setClientId(data.client_id);
                         setInvoiceNumber(data.invoice_number);
-                        setInvoiceDate(data.invoice_date); // Use directly
-                        setDueDate(data.due_date);       // Use directly
+                        setInvoiceDate(data.invoice_date);
+                        setDueDate(data.due_date);
                         setStatus(data.status);
                         setCategory(data.category || '');
                         setSubtotal(data.subtotal);
@@ -194,7 +194,7 @@ export const InvoiceFormScreen: React.FC<Props> = ({ navigation, route }) => {
     };
 
     const initialLoading = loading && ((isEditing && !clientId && clients.length > 0) || (!isEditing && clients.length === 0));
-    if (initialLoading  && !formError) { // Only show full loader if no error yet and initial data is pending
+    if (initialLoading  && !formError) {
         return <ScreenContainer style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}><ActivityIndicator size="large" color={colors.primary} /></ScreenContainer>;
     }
 

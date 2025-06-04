@@ -4,12 +4,12 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import ScreenContainer from '@/components/layout/ScreenContainer';
 import Input from '@/components/common/Input/Input';
 import Button from '@/components/common/Button/Button';
-import { ClientStackParamList } from './ClientListScreen'; // Re-use from ClientListScreen
+import { ClientStackParamList } from './ClientListScreen';
 import { ROUTES } from '@/constants/routes';
 import { Client } from '@/types';
 import { useAuth } from '@/hooks/useAuth';
 import { colors } from '@/constants/colors';
-import * as clientService from '@/api/clientService'; // Uncommented and will be used
+import * as clientService from '@/api/clientService';
 
 type ClientFormScreenProps = NativeStackScreenProps<ClientStackParamList, typeof ROUTES.CLIENT_FORM>;
 
@@ -21,7 +21,6 @@ export const ClientFormScreen: React.FC<ClientFormScreenProps> = ({ navigation, 
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [addressLine1, setAddressLine1] = useState('');
-  // TODO: Add state for other address fields if needed (address_line2, city, state_province, postal_code, country)
 
   const [loading, setLoading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -50,7 +49,6 @@ export const ClientFormScreen: React.FC<ClientFormScreenProps> = ({ navigation, 
         setEmail(data.email || '');
         setPhone(data.phone || '');
         setAddressLine1(data.address_line1 || '');
-        // TODO: Set other address fields from data if they are added to state
       } else {
         setFormError('Client not found.');
         Alert.alert('Error', 'Client not found.');
@@ -79,13 +77,11 @@ export const ClientFormScreen: React.FC<ClientFormScreenProps> = ({ navigation, 
     setLoading(true);
     setFormError(null);
 
-    // Prepare base data, common to create and update
     const commonData = {
       name: name.trim(),
       email: email.trim() || null,
       phone: phone.trim() || null,
       address_line1: addressLine1.trim() || null,
-      // Set other address fields to null or their state values if added
       address_line2: null,
       city: null,
       state_province: null,
@@ -95,7 +91,6 @@ export const ClientFormScreen: React.FC<ClientFormScreenProps> = ({ navigation, 
 
     try {
       if (isEditing && clientId) {
-        // For update, user_id is not part of the payload to clientService.updateClient
         const payload: Partial<Omit<Client, 'id' | 'user_id' | 'created_at' | 'updated_at'>> = commonData;
         const { data, error } = await clientService.updateClient(clientId, payload);
         if (error) throw error;
@@ -104,7 +99,6 @@ export const ClientFormScreen: React.FC<ClientFormScreenProps> = ({ navigation, 
           navigation.goBack();
         }
       } else {
-        // For create, user_id is required.
         const payload: Omit<Client, 'id' | 'created_at' | 'updated_at'> = {
           ...commonData,
           user_id: user.id,
@@ -113,7 +107,6 @@ export const ClientFormScreen: React.FC<ClientFormScreenProps> = ({ navigation, 
         if (error) throw error;
         if (data) {
           Alert.alert('Success', `Client "${data.name}" added successfully.`);
-          // Optionally navigate to the new client's detail screen or refresh list
           navigation.goBack(); 
         }
       }
@@ -145,7 +138,7 @@ export const ClientFormScreen: React.FC<ClientFormScreenProps> = ({ navigation, 
         <Button 
           title={isEditing ? 'Save Changes' : 'Add Client'} 
           onPress={handleSubmit} 
-          loading={loading && !isEditing} // Show loading on button only when submitting new, not when initially loading edit form
+          loading={loading && !isEditing}
           style={styles.submitButton} 
         />
         <Button 
@@ -153,7 +146,7 @@ export const ClientFormScreen: React.FC<ClientFormScreenProps> = ({ navigation, 
           onPress={() => navigation.goBack()} 
           variant="outline" 
           style={styles.cancelButton}
-          disabled={loading} // Disable cancel if an operation is in progress
+          disabled={loading}
         />
       </ScrollView>
     </ScreenContainer>

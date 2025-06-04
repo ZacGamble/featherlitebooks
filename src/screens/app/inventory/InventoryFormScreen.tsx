@@ -4,7 +4,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import ScreenContainer from '@/components/layout/ScreenContainer';
 import Input from '@/components/common/Input/Input';
 import Button from '@/components/common/Button/Button';
-import { InventoryStackParamList } from '@/navigation/AppTabs'; // Corrected import path
+import { InventoryStackParamList } from '@/navigation/AppTabs';
 import { ROUTES } from '@/constants/routes';
 import { InventoryItem } from '@/types';
 import { useSupabase } from '@/hooks/useSupabase';
@@ -38,17 +38,11 @@ export const InventoryFormScreen: React.FC<InventoryFormScreenProps> = ({ naviga
   const fetchItemDetails = async (id: string) => {
     setLoading(true);
     setFormError(null);
-    // In a real app, fetch from Supabase
-    // const { data, error } = await supabase.from('inventory_items').select('*').eq('id', id).single();
-    // For now, using a mock or assuming fields are cleared for new item
-    const MOCK_EDIT_ITEM: InventoryItem = { id: '1', name: 'Feather Pen Edit', sku: 'FP001-E', quantity: 100, unit_price: 1.99, category: 'Stationery', vendor: 'Quill Inc.' };
-    if (id === '1') { // Simulate finding an item
+    const MOCK_EDIT_ITEM: InventoryItem = { id: '1', name: 'Feather Pen Edit', sku: 'FP001-E', unit_price: 1.99, };
+    if (id === '1') {
         setName(MOCK_EDIT_ITEM.name);
         setSku(MOCK_EDIT_ITEM.sku);
-        setQuantity(MOCK_EDIT_ITEM.quantity.toString());
         setUnitPrice(MOCK_EDIT_ITEM.unit_price.toString());
-        setCategory(MOCK_EDIT_ITEM.category || '');
-        setVendor(MOCK_EDIT_ITEM.vendor || '');
     } else {
         setFormError('Item not found for editing.');
     }
@@ -71,34 +65,16 @@ export const InventoryFormScreen: React.FC<InventoryFormScreenProps> = ({ naviga
     const itemData: Omit<InventoryItem, 'id'> & { user_id: string } = {
       name,
       sku,
-      quantity: parseInt(quantity, 10) || 0,
       unit_price: parseFloat(unitPrice) || 0,
-      category: category || null,
-      vendor: vendor || null,
       user_id: user.id,
     };
 
-    // try {
-    //   let response;
-    //   if (isEditing && itemId) {
-    //     response = await supabase.from('inventory_items').update(itemData).eq('id', itemId).select();
-    //   } else {
-    //     response = await supabase.from('inventory_items').insert(itemData).select();
-    //   }
-    //   if (response.error) throw response.error;
-    //   Alert.alert('Success', `Inventory item ${isEditing ? 'updated' : 'added'} successfully.`);
-    //   navigation.goBack(); // Or navigate to list/detail
-    // } catch (e) {
-    //   setFormError((e as Error).message);
-    // } finally {
-    //   setLoading(false);
-    // }
     Alert.alert('Mock Submit', `Simulated ${isEditing ? 'update' : 'add'} for: ${name}`);
     setLoading(false);
     navigation.goBack();
   };
 
-  if (loading && isEditing && !name) { // Show loading only when fetching details for edit
+  if (loading && isEditing && !name) {
     return <ScreenContainer><Text style={styles.loadingText}>Loading item details...</Text></ScreenContainer>;
   }
 
@@ -119,7 +95,7 @@ export const InventoryFormScreen: React.FC<InventoryFormScreenProps> = ({ naviga
         <Button 
           title={isEditing ? 'Save Changes' : 'Add Item'} 
           onPress={handleSubmit} 
-          loading={loading && !isEditing} // Show loading for submit, not for initial fetch
+          loading={loading && !isEditing}
           style={styles.submitButton} 
         />
         <Button 

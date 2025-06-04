@@ -35,7 +35,7 @@ export const InventoryItemFormScreen: React.FC<Props> = ({ navigation, route }) 
       const { data, error } = await inventoryService.getInventoryItemById(id);
       if (error) {
         setFormError(error.message);
-        window.alert(`Error fetching item: ${error.message}`); // Web alert
+        window.alert(`Error fetching item: ${error.message}`);
       } else if (data) {
         setName(data.name);
         setSku(data.sku || '');
@@ -45,12 +45,12 @@ export const InventoryItemFormScreen: React.FC<Props> = ({ navigation, route }) 
         setLowStockThreshold(data.low_stock_threshold?.toString() || '');
       } else {
         setFormError('Inventory item not found.');
-        window.alert('Inventory item not found.'); // Web alert
+        window.alert('Inventory item not found.');
       }
     } catch (e) {
       const err = e as Error;
       setFormError(err.message);
-      window.alert(`An unexpected error occurred: ${err.message}`); // Web alert
+      window.alert(`An unexpected error occurred: ${err.message}`);
     } finally {
       setLoading(false);
     }

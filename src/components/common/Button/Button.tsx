@@ -131,12 +131,6 @@ const styles = StyleSheet.create({
   smallText: {
     fontSize: 14,
   },
-  medium: {
-    // Default padding is medium
-  },
-  mediumText: {
-    // Default font size is medium
-  },
   large: {
     paddingVertical: 16,
     paddingHorizontal: 32,

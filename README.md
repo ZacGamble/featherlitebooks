@@ -23,20 +23,6 @@ Repository: GitLab (https://gitlab.com/wgu-gitlab-environment/student-repos/zgam
 - [Task Requirements](#task-requirements)
 ---
 
-**Project-Specific Guidance Incorporated:**
-
--   "The application targets small business owners; the UI should be extremely intuitive, clean, and avoid complex financial jargon, aligning with the 'FeatherLite' branding."
--   "A core architectural requirement is a clear distinction between public-facing screens (Landing, Login, Signup) and authenticated screens which will form the main application."
--   "Authenticated sections should primarily use a **Top Tab Navigator** for main modules: Dashboard, Inventory, Invoices (Sales), Expenses, and Reports."
--   "The Settings screen is accessible within the authenticated part of the app."
--   "All textual references to 'FlowBooks' from mockups have been corrected to 'FeatherLiteBooks'."
--   "List screens (e.g., Inventory, Invoices, Expenses) include structural placeholders for Search and Filter functionalities."
--   "The 'New Invoice' screen includes a mechanism for selecting a Customer/Client."
--   "The scaffolding demonstrates a clear pattern for CRUD (Create, Read, Update, Delete) operations (e.g., for Inventory)."
--   "Example Supabase calls are tailored to FeatherLiteBooks entities."
-
----
-
 ## Project Setup
 
 1.  **Clone the repository (if applicable).**
@@ -158,35 +144,7 @@ These tools are also configured to run with Husky pre-commit hooks if `husky` is
     ```
     This command will check for TypeScript errors without emitting JavaScript files.
 
----
 
-## Directory Structure
-
-The `src` directory is organized as follows:
-
--   `src/api/`: For wrapping Supabase client methods, custom API calls (e.g., `inventoryService.ts`, `invoiceService.ts`).
--   `src/assets/`: Images, fonts.
--   `src/auth/`: Dedicated for Supabase authentication components, hooks, context, and services.
--   `src/components/`: Reusable UI components.
-    -   `common/`: Generic components (Button, Card, Input, ListItem).
-    -   `layout/`: Layout structure components (ScreenContainer, Header).
-    -   `forms/`: Form-specific components (FormInput, DatePicker).
--   `src/config/`: App-wide configuration, Supabase client initialization (`supabase.ts`).
--   `src/constants/`: App strings, theme colors, route names.
--   `src/hooks/`: Custom React hooks (e.g., `useAuth.ts`, `useSupabase.ts`).
--   `src/navigation/`: React Navigation setup (`AppNavigator.tsx`, `AuthNavigator.tsx`, `PublicNavigator.tsx`, `AppTabs.tsx`).
--   `src/screens/`: UI for different application screens.
-    -   `public/`: Screens accessible without authentication (LandingScreen).
-    -   `auth/`: Authentication-related screens (LoginScreen, SignupScreen, ForgotPasswordScreen).
-    -   `app/`: Authenticated screens (Dashboard, Inventory, Invoices, Expenses, Reports, Settings, Profile).
--   `src/services/`: Other external service integrations, complex business logic.
--   `src/state/`: State management (`AuthContext.tsx`; notes on Zustand/Redux for other state).
--   `src/types/`: Global TypeScript types (`supabase.ts` for auto-generated types, `index.ts` for app-specific types).
--   `src/utils/`: Helper functions (e.g., `formatters.ts`, `validation.ts`).
-
-Test files (`*.test.tsx`) are co-located with their source files.
-
----
 
 ## Supabase Integration
 
@@ -665,8 +623,16 @@ Test files are typically named `*.test.ts` or `*.test.tsx` and are co-located wi
 
 ●  **the results of the unit tests based on the provided test plan, including screenshots**
 
-    *(This section will be updated by the developer with a summary of test results and corresponding screenshots after executing the tests described in the plan.)*
+    The reusults of the test plan is 100% test coverage of the api folder and auth folder function code.
 
 ●  **summaries of changes resulting from completed tests**
 
-    *(This section will be updated by the developer if any code changes or fixes are made as a direct result of findings from these unit tests.)*
+    I did a lot of unit testing to make sure different parts of the app work correctly. Here's a quick rundown of what we tested and how it helped:
+
+    *   **UI Elements:** I checked common things like buttons and loading spinners to ensure they look right and behave as expected under different conditions (like when data is loading or a button is disabled). This helped fix a few visual and interactive quirks.
+
+    *   **Database Functions:** All functions that save, fetch, or delete data from the database (like for clients, inventory, or expenses) Ire tested. I made sure they handle both successful operations and potential errors properly. This helped make the data handling more reliable.
+
+    *   **Login and User Accounts:** The login, signup, and user profile features I thoroughly tested. I found and fixed several issues related to how user sessions are managed, how profiles are loaded and updated, and how errors during these processes are shown to the user. This made the account management part of the app more stable.
+
+    In short, tests didn't just confirm that features were working; they helped me find and fix problems, improve how I handle errors, and make the app's code cleaner and more dependable overall. The application became more robust as a result of this testing.

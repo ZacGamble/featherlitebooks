@@ -28,15 +28,9 @@ export const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
     }
     const signUpError = await signUpNewUser({ email, password });
     if (signUpError) {
-      // Error is already displayed via {error && <Text style={styles.errorText}>{error.message}</Text>}
-      // Alert.alert('Signup Failed', signUpError.message); // Optionally remove if context error is sufficient
+      setSignupSuccessful(false);
     } else {
       setSignupSuccessful(true);
-      // Alert.alert(
-      //   'Signup Successful',
-      //   'Please check your email to confirm your account.'
-      // );
-      // navigation.navigate(ROUTES.LOGIN); // Don't navigate immediately
     }
   };
 

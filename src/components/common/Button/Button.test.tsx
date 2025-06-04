@@ -1,8 +1,8 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import '@testing-library/jest-native/extend-expect'; // Import to extend Jest matchers
+import '@testing-library/jest-native/extend-expect';
 import Button from './Button';
-import { colors } from '@/constants/colors'; // Import colors for style checks
+import { colors } from '@/constants/colors';
 import { ActivityIndicator } from 'react-native';
 
 describe('Button', () => {
@@ -32,8 +32,7 @@ describe('Button', () => {
     const { getByTestId } = render(
       <Button title="Test Button" onPress={onPressMock} loading />
     );
-    const loadingIndicatorContainer = getByTestId('loading-indicator'); // This is the ActivityIndicator itself
-    // Attempt to press the TouchableOpacity, which is the parent of the ActivityIndicator when loading
+    const loadingIndicatorContainer = getByTestId('loading-indicator');
     if (loadingIndicatorContainer && loadingIndicatorContainer.parent) {
         fireEvent.press(loadingIndicatorContainer.parent); 
     }
@@ -45,9 +44,8 @@ describe('Button', () => {
       <Button title="Test Button" onPress={() => {}} loading />
     );
     expect(queryByText('Test Button')).toBeNull();
-    const activityIndicator = getByTestId('loading-indicator'); // This directly gets the ActivityIndicator
+    const activityIndicator = getByTestId('loading-indicator');
     expect(activityIndicator).toBeTruthy();
-    // We can also check its props if needed, e.g., color or size, but existence is key here.
   });
 
   it('applies correct styles for default (primary) variant', () => {

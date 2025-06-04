@@ -4,17 +4,16 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import ScreenContainer from '@/components/layout/ScreenContainer';
 import ListItem from '@/components/common/ListItem/ListItem';
 import Button from '@/components/common/Button/Button';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack'; // For navigation prop type
-import { InvoiceStackParamList } from '@/navigation/InvoiceStack'; // Assuming you'll create this
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { InvoiceStackParamList } from '@/navigation/InvoiceStack';
 import { ROUTES } from '@/constants/routes';
 import { Invoice, Client } from '@/types';
 import { useAuth } from '@/hooks/useAuth';
 import { colors } from '@/constants/colors';
 import { Ionicons } from '@expo/vector-icons';
 import * as invoiceService from '@/api/invoiceService';
-import { format, parseISO } from 'date-fns'; // For date formatting
+import { format, parseISO } from 'date-fns';
 
-// Navigation prop type for this screen
 type InvoiceListNavigationProp = NativeStackNavigationProp<InvoiceStackParamList, typeof ROUTES.INVOICE_LIST>;
 
 export const InvoiceListScreen: React.FC = () => {
@@ -78,7 +77,6 @@ export const InvoiceListScreen: React.FC = () => {
         subtitle={`Date: ${invoiceDate} | Status: ${item.status} | Total: $${item.total_amount.toFixed(2)}`}
         onPress={() => navigation.navigate(ROUTES.INVOICE_DETAIL, { invoiceId: item.id })}
         rightIconName="chevron-forward-outline"
-        // You can add a status indicator based on item.status here if desired
       />
     );
   };
@@ -102,7 +100,6 @@ export const InvoiceListScreen: React.FC = () => {
           onChangeText={setSearchQuery}
           placeholderTextColor={colors.gray}
         />
-        {/* Add filter button if needed */}
       </View>
       
       {error && (
@@ -170,7 +167,7 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   listContent: {
-    paddingBottom: 80, // Space for the add button
+    paddingBottom: 80,
     paddingHorizontal: 10,
   },
   inlineErrorView: {

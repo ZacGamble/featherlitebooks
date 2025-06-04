@@ -5,11 +5,11 @@ import ScreenContainer from '@/components/layout/ScreenContainer';
 import Input from '@/components/common/Input/Input';
 import Button from '@/components/common/Button/Button';
 import Card from '@/components/common/Card/Card';
-import { SettingsStackParamList } from '@/navigation/SettingsStack'; // Correct ParamList
+import { SettingsStackParamList } from '@/navigation/SettingsStack';
 import { ROUTES } from '@/constants/routes';
 import { useAuth } from '@/hooks/useAuth';
 import { useSupabase } from '@/hooks/useSupabase';
-import { UserProfile } from '@/types'; // UserProfile from your types
+import { UserProfile } from '@/types';
 import { colors } from '@/constants/colors';
 
 type ProfileScreenProps = NativeStackScreenProps<SettingsStackParamList, typeof ROUTES.PROFILE>;

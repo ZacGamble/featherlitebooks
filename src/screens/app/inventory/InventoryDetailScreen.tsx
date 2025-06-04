@@ -27,19 +27,7 @@ export const InventoryDetailScreen: React.FC<InventoryDetailScreenProps> = ({ na
   const fetchItemDetails = async () => {
     setLoading(true);
     setError(null);
-    // try {
-    //   const { data, error: fetchError } = await supabase
-    //     .from('inventory_items')
-    //     .select('*')
-    //     .eq('id', itemId)
-    //     .single();
-    //   if (fetchError) throw fetchError;
-    //   setItem(data);
-    // } catch (e) {
-    //   setError((e as Error).message);
-    // }
-    // For now, using mock data
-    const MOCK_DETAIL_ITEM: InventoryItem = { id: itemId, name: `Item ${itemId} Name`, sku: `SKU${itemId}`, quantity: 50, unit_price: 19.99, };
+    const MOCK_DETAIL_ITEM: InventoryItem = { id: itemId, name: `Item ${itemId} Name`, sku: `SKU${itemId}`, unit_price: 19.99, };
     setItem(MOCK_DETAIL_ITEM);
     setLoading(false);
   };
@@ -107,7 +95,7 @@ export const InventoryDetailScreen: React.FC<InventoryDetailScreenProps> = ({ na
           title="Delete Item"
           onPress={handleDelete}
           variant="danger"
-          loading={loading} // Loading state for delete action
+          loading={loading}
           style={styles.actionButton}
         />
       </ScrollView>
