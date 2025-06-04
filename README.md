@@ -598,10 +598,75 @@ This concludes the basic user guide for FeatherLiteBooks.
 
 D.  Explain how the software product was tested, including the following:
 
-●  a test plan for a unit test, including screenshots
+---
+### Software Testing Overview
 
-●  unit test scripts
+This section details the testing strategy for FeatherLiteBooks, focusing on unit tests to ensure individual components and functions behave as expected. We use [Jest](https://jestjs.io/) as the testing framework and [React Native Testing Library](https://callstack.github.io/react-native-testing-library/) for testing React Native components.
 
-●  the results of the unit tests based on the provided test plan, including screenshots
+**Running Tests:**
 
-●  summaries of changes resulting from completed tests
+To run the test suite, use the following commands (as also detailed in the [Running Tests (TDD Workflow)](#running-tests-tdd-workflow) section):
+
+*   Run all tests once:
+    ```bash
+    npm test
+    # or
+    yarn test
+    ```
+*   Run tests in watch mode (re-runs tests on file changes):
+    ```bash
+    npm run test:watch
+    # or
+    yarn test:watch
+    ```
+
+Test files are typically named `*.test.ts` or `*.test.tsx` and are co-located with the source files they are testing.
+
+---
+
+●  **a test plan for a unit test, including screenshots**
+
+    **Unit Test Plan: `Button` Component (`src/components/common/Button/Button.tsx`)**
+
+    **1. Objective:**
+    To verify that the `Button` component renders correctly based on its props and handles user interactions as expected.
+
+    **2. Scope:**
+    *   Rendering with different titles.
+    *   `onPress` event handling (when enabled and disabled).
+    *   Behavior with `loading` prop (e.g., shows activity indicator, disables button).
+    *   Behavior with `disabled` prop.
+    *   Correct styling application for different `variant` props (e.g., `primary`, `outline`, `ghost`).
+
+    **3. Test Cases:**
+
+    | Test Case ID | Description                                                                 | Expected Result                                                                                                | Status     |
+    |--------------|-----------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------|------------|
+    | TC_BTN_001   | Render the button with a given title.                                       | The button displays the correct title text.                                                                    | To be run  |
+    | TC_BTN_002   | Call `onPress` handler when the button is pressed (and not disabled).       | The `onPress` mock function is called once.                                                                      | To be run  |
+    | TC_BTN_003   | Do not call `onPress` handler when the button is pressed and `disabled` is true. | The `onPress` mock function is not called.                                                                     | To be run  |
+    | TC_BTN_004   | Do not call `onPress` handler when the button is pressed and `loading` is true.  | The `onPress` mock function is not called. The button should be effectively disabled.                          | To be run  |
+    | TC_BTN_005   | Show an `ActivityIndicator` when `loading` is true.                         | An `ActivityIndicator` component is present within the button, and the title text might be hidden or adjusted. | To be run  |
+    | TC_BTN_006   | Apply correct styles for the `primary` variant (default).                   | Button and text styles match the defined `primary` styles.                                                       | To be run  |
+    | TC_BTN_007   | Apply correct styles for the `outline` variant.                             | Button and text styles match the defined `outline` styles.                                                       | To be run  |
+    | TC_BTN_008   | Apply correct styles for the `ghost` variant.                               | Button and text styles match the defined `ghost` styles.                                                         | To be run  |
+    | TC_BTN_009   | Button is not pressable when `disabled` prop is true.                     | `onPress` is not called, and accessibility state should indicate disabled.                                   | To be run  |
+
+    **4. Test Environment:**
+    *   Jest testing framework.
+    *   React Native Testing Library.
+
+    **5. Screenshots of Test Execution:**
+    *(Screenshots of the terminal output after running `npm test` will be added here by the developer to show test results.)*
+
+●  **unit test scripts**
+
+    *(The actual Jest test scripts for the `Button` component, located in `src/components/common/Button/Button.test.tsx`, will be implemented as part of this task. See the file for the script content after implementation.)*
+
+●  **the results of the unit tests based on the provided test plan, including screenshots**
+
+    *(This section will be updated by the developer with a summary of test results and corresponding screenshots after executing the tests described in the plan.)*
+
+●  **summaries of changes resulting from completed tests**
+
+    *(This section will be updated by the developer if any code changes or fixes are made as a direct result of findings from these unit tests.)*
