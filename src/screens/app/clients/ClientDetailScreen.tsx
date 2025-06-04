@@ -20,7 +20,7 @@ export const ClientDetailScreen: React.FC<ClientDetailScreenProps> = ({ navigati
 
   const [client, setClient] = useState<Client | null>(null);
   const [loading, setLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState(false); // For button-specific loading
+  const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchClientDetails = useCallback(async () => {
@@ -30,7 +30,7 @@ export const ClientDetailScreen: React.FC<ClientDetailScreenProps> = ({ navigati
       return;
     }
     setLoading(true);
-    setActionLoading(false); // Reset action loading too
+    setActionLoading(false);
     setError(null);
     try {
       const { data, error: fetchError } = await clientService.getClientById(clientId);
@@ -68,14 +68,12 @@ export const ClientDetailScreen: React.FC<ClientDetailScreenProps> = ({ navigati
     }
     if (!user) {
       console.log('Delete attempted but no authenticated user available.');
-      // Using window.alert for simple error message
       window.alert('User not authenticated. Cannot delete client.');
       return;
     }
 
     console.log(`Attempting to delete client with ID: ${client.id} by user ID: ${user.id}`);
 
-    // Using window.confirm for confirmation
     const confirmed = window.confirm(`Are you sure you want to delete "${client.name}"? This action cannot be undone.`);
 
     if (confirmed) {
@@ -87,11 +85,9 @@ export const ClientDetailScreen: React.FC<ClientDetailScreenProps> = ({ navigati
         if (deleteError) {
           console.error('Error deleting client:', JSON.stringify(deleteError, null, 2));
           setError(deleteError.message);
-          // Using window.alert for error message
           window.alert(`Delete Error: ${deleteError.message} (Code: ${deleteError.code})`);
         } else {
           console.log('Client deleted successfully from service.');
-          // Using window.alert for success message
           window.alert(`Client "${client.name}" deleted successfully.`);
           navigation.goBack(); 
         }
@@ -99,7 +95,6 @@ export const ClientDetailScreen: React.FC<ClientDetailScreenProps> = ({ navigati
         const err = e as Error;
         console.error('Exception during delete process:', err);
         setError(err.message);
-        // Using window.alert for error message
         window.alert(`Delete Error: An unexpected error occurred: ${err.message}`);
       } finally {
         setActionLoading(false);
@@ -146,7 +141,6 @@ export const ClientDetailScreen: React.FC<ClientDetailScreenProps> = ({ navigati
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back-outline" size={28} color={colors.primary} />
         </TouchableOpacity>
-        {/* Optionally, add a title here if needed */}
       </View>
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.headerSection}>
@@ -185,7 +179,6 @@ export const ClientDetailScreen: React.FC<ClientDetailScreenProps> = ({ navigati
           />
         </View>
 
-        {/* Placeholder for related items like invoices or projects */}
         {/* <View style={styles.relatedInfoCard}>
           <Text style={styles.sectionTitle}>Related Invoices</Text>
           <Text style={styles.placeholderText}>Invoices for this client will appear here.</Text>
@@ -305,24 +298,6 @@ const styles = StyleSheet.create({
     color: colors.error,
     marginBottom: 15,
   },
-  // relatedInfoCard: {
-  //   marginTop: 20,
-  //   padding: 15,
-  //   backgroundColor: colors.surface,
-  //   borderRadius: 8,
-  // },
-  // sectionTitle: {
-  //   fontSize: 18,
-  //   fontWeight: 'bold',
-  //   marginBottom: 10,
-  //   color: colors.text,
-  // },
-  // placeholderText: {
-  //   fontSize: 14,
-  //   color: colors.textSecondary,
-  //   textAlign: 'center',
-  //   paddingVertical: 10,
-  // },
 });
 
 export default ClientDetailScreen; 

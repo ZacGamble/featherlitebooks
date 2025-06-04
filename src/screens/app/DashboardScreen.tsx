@@ -305,7 +305,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   return (
     <ScreenContainer scrollable>
       <View style={styles.headerContainer}>
-        <Text style={styles.title}>Welcome, {profile?.business_name || profile?.username || user?.email || 'User'}!</Text>
+        <Text style={styles.title}>Welcome, {profile?.username || user?.email || 'User'}!</Text>
         <Text style={styles.subtitle}>Your Financial Overview</Text>
       </View>
 

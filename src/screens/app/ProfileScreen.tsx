@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import ScreenContainer from '@/components/layout/ScreenContainer';
 import Input from '@/components/common/Input/Input';
@@ -15,12 +15,11 @@ import { colors } from '@/constants/colors';
 type ProfileScreenProps = NativeStackScreenProps<SettingsStackParamList, typeof ROUTES.PROFILE>;
 
 export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
-  const { user, profile, loading: authLoading, error: authError, clearError } = useAuth();
+  const { user, profile, loading: authLoading, error: authError, clearError, refreshProfile } = useAuth();
   const supabase = useSupabase();
 
   const [username, setUsername] = useState(profile?.username || '');
   const [fullName, setFullName] = useState(profile?.full_name || '');
-  const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url || '');
 
   const [loading, setLoading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -30,7 +29,6 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
     if (profile) {
       setUsername(profile.username || '');
       setFullName(profile.full_name || '');
-      setAvatarUrl(profile.avatar_url || '');
     }
     if (authError) {
         setFormError(authError.message);
@@ -56,22 +54,18 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
       id: user.id,
       username,
       full_name: fullName,
-      avatar_url: avatarUrl,
     };
 
-    // try {
-    //   const { error: updateError } = await supabase.from('profiles').upsert(updates).select().single();
-    //   if (updateError) throw updateError;
-    //   setSuccessMessage('Profile updated successfully!');
-    //   // Optionally, refresh profile in AuthContext or rely on its existing listeners if set up for 'profiles' table changes.
-    // } catch (e) {
-    //   setFormError((e as Error).message);
-    // } finally {
-    //   setLoading(false);
-    // }
-    Alert.alert('Mock Update', 'Profile update simulated.');
-    setSuccessMessage('Profile update simulated successfully!');
-    setLoading(false);
+    try {
+      const { error: updateError } = await supabase.from('profiles').upsert(updates).select().single();
+      if (updateError) throw updateError;
+      setSuccessMessage('Profile updated successfully!');
+      await refreshProfile();
+    } catch (e) {
+      setFormError((e as Error).message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (authLoading && !profile) {
@@ -85,9 +79,6 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
         
         <Card style={styles.profileCard}>
             <Text style={styles.emailText}>Email: {user?.email || 'Not available'}</Text>
-            <View style={styles.avatarPlaceholder}>
-                <Text>{avatarUrl ? 'Avatar Set' : 'No Avatar'}</Text>
-            </View>
 
             {formError && <Text style={styles.errorText}>{formError}</Text>}
             {successMessage && <Text style={styles.successText}>{successMessage}</Text>}
@@ -105,14 +96,6 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ navigation }) => {
                 onChangeText={setFullName} 
                 placeholder="Your full name"
             />
-            {/* <Input 
-                label="Avatar URL (Optional)"
-                value={avatarUrl} 
-                onChangeText={setAvatarUrl} 
-                placeholder="http://your-avatar.png"
-                autoCapitalize="none"
-                keyboardType="url"
-            /> */}
             <Button 
                 title="Update Profile"
                 onPress={handleUpdateProfile} 
@@ -131,7 +114,6 @@ const styles = StyleSheet.create({
   title: { fontSize: 24, fontWeight: 'bold', color: colors.primary, marginBottom: 20, textAlign: 'center' },
   profileCard: { padding: 20 },
   emailText: { fontSize: 16, color: colors.textSecondary, marginBottom: 15, textAlign: 'center' },
-  avatarPlaceholder: { height: 100, width: 100, borderRadius: 50, backgroundColor: colors.lightGray, justifyContent:'center', alignItems:'center', alignSelf:'center', marginBottom:20 },
   messageText: { textAlign: 'center', padding: 20, fontSize: 16 },
   errorText: { color: colors.error, marginBottom: 15, textAlign: 'center', fontSize: 14 },
   successText: { color: colors.success, marginBottom: 15, textAlign: 'center', fontSize: 14 },

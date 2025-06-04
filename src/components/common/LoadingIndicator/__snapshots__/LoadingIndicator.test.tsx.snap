@@ -1,0 +1,111 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`LoadingIndicator matches snapshot for basic rendering with text 1`] = `
+<View
+  style={
+    {
+      "alignItems": "center",
+      "justifyContent": "center",
+      "padding": 20,
+    }
+  }
+>
+  <ActivityIndicator
+    color="#39648d"
+    size="large"
+    testID="activity-indicator"
+  />
+  <Text
+    style={
+      {
+        "color": "#453a3c",
+        "fontSize": 16,
+        "marginTop": 10,
+      }
+    }
+  >
+    Snapshotting basic
+  </Text>
+</View>
+`;
+
+exports[`LoadingIndicator matches snapshot for fullScreen but not visible (Modal with visible=false) 1`] = `null`;
+
+exports[`LoadingIndicator matches snapshot for fullScreen rendering with text 1`] = `
+<Modal
+  animationType="none"
+  hardwareAccelerated={false}
+  transparent={true}
+  visible={true}
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "backgroundColor": "#00000040",
+        "flex": 1,
+        "flexDirection": "column",
+        "justifyContent": "space-around",
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "justifyContent": "center",
+          "padding": 20,
+        }
+      }
+    >
+      <ActivityIndicator
+        color="#39648d"
+        size="large"
+        testID="activity-indicator"
+      />
+      <Text
+        style={
+          {
+            "color": "#453a3c",
+            "fontSize": 16,
+            "marginTop": 10,
+          }
+        }
+      >
+        Snapshotting fullscreen
+      </Text>
+    </View>
+  </View>
+</Modal>
+`;
+
+exports[`LoadingIndicator matches snapshot when not visible and not fullscreen (renders null) 1`] = `null`;
+
+exports[`LoadingIndicator renders with specific size and color (verified by snapshot) 1`] = `
+<View
+  style={
+    {
+      "alignItems": "center",
+      "justifyContent": "center",
+      "padding": 20,
+    }
+  }
+>
+  <ActivityIndicator
+    color="#453a3c"
+    size="small"
+    testID="activity-indicator"
+  />
+  <Text
+    style={
+      {
+        "color": "#453a3c",
+        "fontSize": 16,
+        "marginTop": 10,
+      }
+    }
+  >
+    Customized
+  </Text>
+</View>
+`;

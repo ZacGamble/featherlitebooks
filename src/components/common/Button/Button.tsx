@@ -1,18 +1,19 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, ActivityIndicator, ViewStyle, TextStyle } from 'react-native';
+import { TouchableOpacity, Text, StyleSheet, ActivityIndicator, ViewStyle, TextStyle, Platform, StyleProp } from 'react-native';
 import { colors } from '@/constants/colors';
 
-interface ButtonProps {
+export interface ButtonProps {
   title: string;
   onPress: () => void;
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'link';
   size?: 'small' | 'medium' | 'large';
-  disabled?: boolean;
   loading?: boolean;
-  style?: ViewStyle;
-  textStyle?: TextStyle;
+  disabled?: boolean;
+  style?: StyleProp<ViewStyle>;
+  textStyle?: StyleProp<TextStyle>;
   iconLeft?: React.ReactNode;
   iconRight?: React.ReactNode;
+  testID?: string;
 }
 
 const Button: React.FC<ButtonProps> = ({
@@ -20,77 +21,49 @@ const Button: React.FC<ButtonProps> = ({
   onPress,
   variant = 'primary',
   size = 'medium',
-  disabled = false,
   loading = false,
+  disabled = false,
   style,
   textStyle,
   iconLeft,
   iconRight,
+  testID: customTestID
 }) => {
-  const getButtonStyles = () => {
-    const buttonStyles: ViewStyle[] = [styles.buttonBase as ViewStyle];
-    const textStyles: TextStyle[] = [styles.textBase as TextStyle];
+  const isDisabled = disabled || loading;
 
-    // Variant styles
-    switch (variant) {
-      case 'primary':
-        buttonStyles.push(styles.primaryButton as ViewStyle);
-        textStyles.push(styles.primaryText as TextStyle);
-        break;
-      case 'secondary':
-        buttonStyles.push(styles.secondaryButton as ViewStyle);
-        textStyles.push(styles.secondaryText as TextStyle);
-        break;
-      case 'outline':
-        buttonStyles.push(styles.outlineButton as ViewStyle);
-        textStyles.push(styles.outlineText as TextStyle);
-        break;
-      case 'ghost':
-        buttonStyles.push(styles.ghostButton as ViewStyle);
-        textStyles.push(styles.ghostText as TextStyle);
-        break;
-      case 'danger':
-        buttonStyles.push(styles.dangerButton as ViewStyle);
-        textStyles.push(styles.dangerText as TextStyle);
-        break;
-    }
-
-    // Size styles
-    switch (size) {
-      case 'small':
-        buttonStyles.push(styles.smallButton as ViewStyle);
-        textStyles.push(styles.smallText as TextStyle);
-        break;
-      case 'large':
-        buttonStyles.push(styles.largeButton as ViewStyle);
-        textStyles.push(styles.largeText as TextStyle);
-        break;
-      case 'medium': // Default, already covered by base
-      default:
-        break;
-    }
-
-    if (disabled || loading) {
-      buttonStyles.push(styles.disabledButton as ViewStyle);
-    }
-
-    if (style) buttonStyles.push(style);
-    if (textStyle) textStyles.push(textStyle);
-
-    return { buttonStyles, textStyles };
+  const getButtonStyles = (): ViewStyle[] => {
+    const baseStyle = styles.button;
+    const variantStyle = styles[variant] || styles.primary;
+    const sizeStyle = styles[size] || styles.medium;
+    const disabledStyle = isDisabled ? styles.disabled : {};
+    return [baseStyle, variantStyle, sizeStyle, disabledStyle];
   };
 
-  const { buttonStyles, textStyles } = getButtonStyles();
+  const getTextStyles = (): TextStyle[] => {
+    const baseTextStyle = styles.text;
+    const variantTextStyle = styles[`${variant}Text`] || styles.primaryText;
+    const sizeTextStyle = styles[`${size}Text`] || styles.mediumText;
+    const disabledTextStyle = isDisabled ? styles.disabledText : {};
+    return [baseTextStyle, variantTextStyle, sizeTextStyle, disabledTextStyle];
+  };
 
   return (
-    <TouchableOpacity onPress={onPress} disabled={disabled || loading} style={buttonStyles}>
+    <TouchableOpacity
+      testID={customTestID || 'button-container'}
+      style={[getButtonStyles(), style]}
+      onPress={onPress}
+      disabled={isDisabled}
+      activeOpacity={0.7}
+      accessibilityRole="button"
+      accessibilityState={{ disabled: isDisabled }}
+    >
       {loading ? (
-        <ActivityIndicator color={variant === 'primary' || variant === 'danger' ? colors.white : colors.primary} />
+        <ActivityIndicator testID="loading-indicator" color={variant === 'primary' ? colors.white : colors.primary} size={size === 'small' ? 'small' : 'large'} />
       ) : (
         <>
-          {iconLeft}
-          <Text style={textStyles}>{title}</Text>
-          {iconRight}
+          {iconLeft && <Text style={styles.iconStyle}>{iconLeft}</Text>}
+          <Text testID="button-text" style={[getTextStyles(), textStyle]}>{title}</Text>
+          {iconRight && <Text style={styles.iconStyle}>{iconRight}</Text>}
         </>
       )}
     </TouchableOpacity>
@@ -98,72 +71,89 @@ const Button: React.FC<ButtonProps> = ({
 };
 
 const styles = StyleSheet.create({
-  buttonBase: {
+  button: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
     borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
     borderWidth: 1,
     borderColor: 'transparent',
   },
-  textBase: {
+  text: {
     fontSize: 16,
     fontWeight: '600',
     textAlign: 'center',
   },
-  primaryButton: {
+  primary: {
     backgroundColor: colors.primary,
     borderColor: colors.primary,
   },
   primaryText: {
     color: colors.white,
   },
-  secondaryButton: {
+  secondary: {
     backgroundColor: colors.secondary,
     borderColor: colors.secondary,
   },
   secondaryText: {
     color: colors.white,
   },
-  outlineButton: {
-    backgroundColor: 'transparent',
+  outline: {
+    backgroundColor: colors.transparent,
     borderColor: colors.primary,
   },
   outlineText: {
     color: colors.primary,
   },
-  ghostButton: {
-    backgroundColor: 'transparent',
-    borderColor: 'transparent',
+  ghost: {
+    backgroundColor: colors.transparent,
+    borderColor: colors.transparent,
   },
   ghostText: {
     color: colors.primary,
   },
-  dangerButton: {
-    backgroundColor: colors.error,
-    borderColor: colors.error,
+  link: {
+    backgroundColor: colors.transparent,
+    borderColor: colors.transparent,
+    paddingHorizontal: 0,
+    paddingVertical: 0,
   },
-  dangerText: {
-    color: colors.white,
+  linkText: {
+    color: colors.primary,
+    textDecorationLine: 'underline',
   },
-  disabledButton: {
-    opacity: 0.6,
-  },
-  smallButton: {
+  small: {
     paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingHorizontal: 16,
   },
   smallText: {
     fontSize: 14,
   },
-  largeButton: {
+  medium: {
+    // Default padding is medium
+  },
+  mediumText: {
+    // Default font size is medium
+  },
+  large: {
     paddingVertical: 16,
-    paddingHorizontal: 24,
+    paddingHorizontal: 32,
   },
   largeText: {
     fontSize: 18,
+  },
+  disabled: {
+    backgroundColor: colors.disabled,
+    borderColor: colors.disabled,
+    opacity: 0.7,
+  },
+  disabledText: {
+    color: colors.textTertiary,
+  },
+  iconStyle: {
+    marginHorizontal: 8,
   },
 });
 

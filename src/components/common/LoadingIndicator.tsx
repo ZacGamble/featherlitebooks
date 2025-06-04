@@ -19,7 +19,7 @@ const LoadingIndicator: React.FC<Props> = ({
 }) => {
   const content = (
     <View style={styles.container}>
-      <ActivityIndicator size={size} color={color} />
+      <ActivityIndicator size={size} color={color} testID="activity-indicator" />
       {text && <Text style={styles.text}>{text}</Text>}
     </View>
   );

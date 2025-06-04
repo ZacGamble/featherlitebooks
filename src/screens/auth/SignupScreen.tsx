@@ -17,25 +17,50 @@ export const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [signupSuccessful, setSignupSuccessful] = useState(false);
   const { signUpNewUser, loading, error, clearError } = useAuth();
 
   const handleSignup = async () => {
     if (error) clearError();
     if (password !== confirmPassword) {
-      Alert.alert('Signup Error', 'Passwords do not match.');
+      Alert.alert(signupScreenStrings.passwordMismatchErrorTitle, signupScreenStrings.passwordMismatchErrorMessage);
       return;
     }
     const signUpError = await signUpNewUser({ email, password });
     if (signUpError) {
-      Alert.alert('Signup Failed', signUpError.message);
+      // Error is already displayed via {error && <Text style={styles.errorText}>{error.message}</Text>}
+      // Alert.alert('Signup Failed', signUpError.message); // Optionally remove if context error is sufficient
     } else {
-      Alert.alert(
-        'Signup Successful',
-        'Please check your email to confirm your account.'
-      );
-      navigation.navigate(ROUTES.LOGIN);
+      setSignupSuccessful(true);
+      // Alert.alert(
+      //   'Signup Successful',
+      //   'Please check your email to confirm your account.'
+      // );
+      // navigation.navigate(ROUTES.LOGIN); // Don't navigate immediately
     }
   };
+
+  if (signupSuccessful) {
+    return (
+      <ScreenContainer style={styles.container}>
+        <View style={styles.headerContainer}>
+          <View style={{ width: 28 }} />
+          <Text style={styles.title}>{signupScreenStrings.confirmationTitle}</Text>
+          <View style={{ width: 28 }} />
+        </View>
+        <Text style={styles.successMessageText}>
+          {signupScreenStrings.confirmationMessagePrefix} 
+          <Text style={styles.emailHighlight}>{email}</Text>.
+          {signupScreenStrings.confirmationMessageSuffix}
+        </Text>
+        <Button
+          title={signupScreenStrings.proceedToLoginButton}
+          onPress={() => navigation.navigate(ROUTES.LOGIN)}
+          style={styles.button}
+        />
+      </ScreenContainer>
+    );
+  }
 
   return (
     <ScreenContainer style={styles.container}>
@@ -104,6 +129,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     textAlign: 'center',
+    color: colors.primary,
     flex: 1,
   },
   inputContainer: {
@@ -119,6 +145,17 @@ const styles = StyleSheet.create({
     color: colors.error,
     textAlign: 'center',
     marginBottom: 10,
+  },
+  successMessageText: {
+    fontSize: 16,
+    textAlign: 'center',
+    color: colors.text,
+    marginBottom: 20,
+    lineHeight: 24,
+  },
+  emailHighlight: {
+    fontWeight: 'bold',
+    color: colors.primary,
   },
 });
 

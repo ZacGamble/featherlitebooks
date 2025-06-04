@@ -25,4 +25,10 @@ export const signupScreenStrings = {
   confirmPasswordPlaceholder: 'Confirm Password',
   signupButton: 'Sign Up',
   loginPrompt: 'Already have an account? Log in',
+  passwordMismatchErrorTitle: 'Password Mismatch',
+  passwordMismatchErrorMessage: 'The passwords you entered do not match. Please try again.',
+  confirmationTitle: 'Confirm Your Email',
+  confirmationMessagePrefix: "Account creation initiated! We've sent a confirmation link to ",
+  confirmationMessageSuffix: ' Please check your inbox (and spam folder) to complete your registration.',
+  proceedToLoginButton: 'Proceed to Login',
 };
