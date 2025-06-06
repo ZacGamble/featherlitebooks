@@ -167,92 +167,39 @@ These tools are also configured to run with Husky pre-commit hooks if `husky` is
 
 ## Deployment Workflow (Google Cloud Run)
 
-This section outlines the current manual deployment pipeline to Google Cloud Run and provides a guide for future deployments.
+This section outlines the current automated deployment pipeline to Google Cloud Run.
 
-**Note on Scripts:**
-The following steps can be largely automated by running the shell scripts located in the `scripts/` directory. Ensure they are executable by running `chmod +x scripts/*.sh` once in your terminal.
+**Note on the Script:**
+The entire deployment process is automated by a single script. Ensure it is executable by running `chmod +x scripts/build-all.sh` once in your terminal.
 
-### Current Manual Deployment Steps (with Scripts):
+### The All-in-One Deployment Script
 
-1.  **Build the Expo Web Application:**
-    *   Run the script: `./scripts/build-expo.sh`
-    *   Alternatively, the manual command is: `npx expo export -p web`
-    *   This generates the static web output in the `dist/` directory.
+This process packages the application, pushes the new version to the container registry, and deploys it to the live service.
 
-2.  **Update Dockerfile (If Necessary):**
-    *   The `Dockerfile` is configured to use `node:18-alpine`, copy the `dist/` folder, install `serve`, and run `serve -s dist`.
-    *   It exposes port 8080 and lets `serve` pick up the `$PORT` environment variable provided by Cloud Run.
-    *   Path: `Dockerfile`
+*   **Action:** Run the `build-all.sh` script.
+*   **Command:** `./scripts/build-all.sh`
+*   **What it does:**
+    1.  **Builds** the Expo web application.
+    2.  **Builds** a fresh Docker image from the latest code (`--no-cache`).
+    3.  **Tags** the new image for Google Container Registry (GCR).
+    4.  **Pushes** the tagged image to GCR.
+    5.  **Deploys** the new image to Google Cloud Run by creating and activating a new service revision.
 
-3.  **Build Docker Image:**
-    *   Run the script: `./scripts/build-docker.sh`
-    *   This script builds the image targeting `linux/amd64` and names it `d424-capstone-app`.
-    *   Alternatively, the manual command is: `docker build --platform linux/amd64 -t d424-capstone-app .`
+### Simplified Guide for Future Deployments:
 
-4.  **Tag and Push Docker Image to Google Container Registry (GCR):**
-    *   Run the script: `./scripts/push-docker-gcloud.sh`
-    *   This script tags the `d424-capstone-app` image for your GCR repository (`us.gcr.io/featherlitebooks/d424-capstone-app:latest`) and pushes it.
-    *   **Note:** The push script assumes you have already configured Docker for GCR authentication (e.g., by running `gcloud auth configure-docker us.gcr.io --quiet`).
-    *   Manual tagging command: `docker tag d424-capstone-app us.gcr.io/featherlitebooks/d424-capstone-app:latest`
-    *   Manual push command: `docker push us.gcr.io/featherlitebooks/d424-capstone-app:latest`
+1.  **Make your code changes.**
+2.  **Run the deployment script:** `./scripts/build-all.sh`.
+3.  **Wait for the script to complete.** It will output the final Service URL at the end.
 
-5.  **Manage Secrets in Google Secret Manager (First-time setup or if keys change):**
+### Manual Steps (First-Time Setup)
+
+The following steps only need to be done once or if you change your cloud configuration:
+
+1.  **Configure Docker for GCR Authentication:**
+    *   Command: `gcloud auth configure-docker us.gcr.io --quiet`
+2.  **Manage Secrets in Google Secret Manager:**
     *   This step remains manual as it involves sensitive data and permissions setup in Google Cloud.
-    *   Store sensitive environment variables like Supabase keys in Secret Manager.
-    *   Create secrets (e.g., `supabase-url`, `supabase-anon-key`).
-    *   Add secret versions with the actual key values.
-    *   Grant the Cloud Run service's service account (e.g., `[PROJECT_NUMBER]-compute@developer.gserviceaccount.com`) the "Secret Manager Secret Accessor" IAM role for each secret.
-        *   Example command:
-            ```bash
-            gcloud secrets add-iam-policy-binding SECRET_NAME \
-                --project="YOUR_PROJECT_ID" \
-                --role="roles/secretmanager.secretAccessor" \
-                --member="serviceAccount:SERVICE_ACCOUNT_EMAIL"
-            ```
-
-6.  **Deploy to Google Cloud Run:**
-    *   This step also remains a direct `gcloud` command.
-    *   Use the `gcloud run deploy` command, referencing the image in GCR and the secrets from Secret Manager.
-    *   Command:
-        ```bash
-        gcloud run deploy YOUR_SERVICE_NAME \
-            --image us.gcr.io/featherlitebooks/d424-capstone-app:latest \
-            --platform managed \
-            --region YOUR_REGION \
-            --allow-unauthenticated \
-            --project=YOUR_PROJECT_ID \
-            --update-secrets=ENV_VAR_NAME_IN_CONTAINER=SECRET_NAME_IN_MANAGER:latest,OTHER_ENV_VAR=OTHER_SECRET:latest \
-            --quiet
-        ```
-    *   Example for this project:
-        ```bash
-        gcloud run deploy featherlitebooks \
-            --image us.gcr.io/featherlitebooks/d424-capstone-app:latest \
-            --platform managed \
-            --region us-west1 \
-            --allow-unauthenticated \
-            --project=featherlitebooks \
-            --update-secrets=EXPO_PUBLIC_SUPABASE_URL=supabase-url:latest,EXPO_PUBLIC_SUPABASE_ANON_KEY=supabase-anon-key:latest \
-            --quiet
-        ```
-
-### Simplified Guide for Future Deployments (After Initial Setup):
-
-Assuming secrets and IAM permissions are already configured, and scripts are executable (`chmod +x scripts/*.sh`):
-
-1.  **Make code changes.**
-2.  **Build Expo Web:** `./scripts/build-expo.sh`
-3.  **Build Docker Image:** `./scripts/build-docker.sh`
-4.  **Tag and Push Docker Image to GCR:** `./scripts/push-docker-gcloud.sh`
-5.  **Deploy to Cloud Run:**
-    ```bash
-    gcloud run deploy featherlitebooks \
-        --image us.gcr.io/featherlitebooks/d424-capstone-app:latest \
-        # ... (rest of the deploy command as above, ensure image tag matches if you change it from :latest)
-        --update-secrets=EXPO_PUBLIC_SUPABASE_URL=supabase-url:latest,EXPO_PUBLIC_SUPABASE_ANON_KEY=supabase-anon-key:latest \
-        --quiet
-    ```
-    (Ensure the image name/tag in the deploy command matches what you pushed if you deviate from `:latest` in your scripts).
+    *   You must grant the Cloud Run service's service account the "Secret Manager Secret Accessor" IAM role for each secret.
 
 ### Suggestions for Enhancing Workflow:
 
