@@ -165,6 +165,115 @@ These tools are also configured to run with Husky pre-commit hooks if `husky` is
 
 ---
 
+## Deployment Workflow (Google Cloud Run)
+
+This section outlines the current manual deployment pipeline to Google Cloud Run and provides a guide for future deployments.
+
+**Note on Scripts:**
+The following steps can be largely automated by running the shell scripts located in the `scripts/` directory. Ensure they are executable by running `chmod +x scripts/*.sh` once in your terminal.
+
+### Current Manual Deployment Steps (with Scripts):
+
+1.  **Build the Expo Web Application:**
+    *   Run the script: `./scripts/build-expo.sh`
+    *   Alternatively, the manual command is: `npx expo export -p web`
+    *   This generates the static web output in the `dist/` directory.
+
+2.  **Update Dockerfile (If Necessary):**
+    *   The `Dockerfile` is configured to use `node:18-alpine`, copy the `dist/` folder, install `serve`, and run `serve -s dist`.
+    *   It exposes port 8080 and lets `serve` pick up the `$PORT` environment variable provided by Cloud Run.
+    *   Path: `Dockerfile`
+
+3.  **Build Docker Image:**
+    *   Run the script: `./scripts/build-docker.sh`
+    *   This script builds the image targeting `linux/amd64` and names it `d424-capstone-app`.
+    *   Alternatively, the manual command is: `docker build --platform linux/amd64 -t d424-capstone-app .`
+
+4.  **Tag and Push Docker Image to Google Container Registry (GCR):**
+    *   Run the script: `./scripts/push-docker-gcloud.sh`
+    *   This script tags the `d424-capstone-app` image for your GCR repository (`us.gcr.io/featherlitebooks/d424-capstone-app:latest`) and pushes it.
+    *   **Note:** The push script assumes you have already configured Docker for GCR authentication (e.g., by running `gcloud auth configure-docker us.gcr.io --quiet`).
+    *   Manual tagging command: `docker tag d424-capstone-app us.gcr.io/featherlitebooks/d424-capstone-app:latest`
+    *   Manual push command: `docker push us.gcr.io/featherlitebooks/d424-capstone-app:latest`
+
+5.  **Manage Secrets in Google Secret Manager (First-time setup or if keys change):**
+    *   This step remains manual as it involves sensitive data and permissions setup in Google Cloud.
+    *   Store sensitive environment variables like Supabase keys in Secret Manager.
+    *   Create secrets (e.g., `supabase-url`, `supabase-anon-key`).
+    *   Add secret versions with the actual key values.
+    *   Grant the Cloud Run service's service account (e.g., `[PROJECT_NUMBER]-compute@developer.gserviceaccount.com`) the "Secret Manager Secret Accessor" IAM role for each secret.
+        *   Example command:
+            ```bash
+            gcloud secrets add-iam-policy-binding SECRET_NAME \
+                --project="YOUR_PROJECT_ID" \
+                --role="roles/secretmanager.secretAccessor" \
+                --member="serviceAccount:SERVICE_ACCOUNT_EMAIL"
+            ```
+
+6.  **Deploy to Google Cloud Run:**
+    *   This step also remains a direct `gcloud` command.
+    *   Use the `gcloud run deploy` command, referencing the image in GCR and the secrets from Secret Manager.
+    *   Command:
+        ```bash
+        gcloud run deploy YOUR_SERVICE_NAME \
+            --image us.gcr.io/featherlitebooks/d424-capstone-app:latest \
+            --platform managed \
+            --region YOUR_REGION \
+            --allow-unauthenticated \
+            --project=YOUR_PROJECT_ID \
+            --update-secrets=ENV_VAR_NAME_IN_CONTAINER=SECRET_NAME_IN_MANAGER:latest,OTHER_ENV_VAR=OTHER_SECRET:latest \
+            --quiet
+        ```
+    *   Example for this project:
+        ```bash
+        gcloud run deploy featherlitebooks \
+            --image us.gcr.io/featherlitebooks/d424-capstone-app:latest \
+            --platform managed \
+            --region us-west1 \
+            --allow-unauthenticated \
+            --project=featherlitebooks \
+            --update-secrets=EXPO_PUBLIC_SUPABASE_URL=supabase-url:latest,EXPO_PUBLIC_SUPABASE_ANON_KEY=supabase-anon-key:latest \
+            --quiet
+        ```
+
+### Simplified Guide for Future Deployments (After Initial Setup):
+
+Assuming secrets and IAM permissions are already configured, and scripts are executable (`chmod +x scripts/*.sh`):
+
+1.  **Make code changes.**
+2.  **Build Expo Web:** `./scripts/build-expo.sh`
+3.  **Build Docker Image:** `./scripts/build-docker.sh`
+4.  **Tag and Push Docker Image to GCR:** `./scripts/push-docker-gcloud.sh`
+5.  **Deploy to Cloud Run:**
+    ```bash
+    gcloud run deploy featherlitebooks \
+        --image us.gcr.io/featherlitebooks/d424-capstone-app:latest \
+        # ... (rest of the deploy command as above, ensure image tag matches if you change it from :latest)
+        --update-secrets=EXPO_PUBLIC_SUPABASE_URL=supabase-url:latest,EXPO_PUBLIC_SUPABASE_ANON_KEY=supabase-anon-key:latest \
+        --quiet
+    ```
+    (Ensure the image name/tag in the deploy command matches what you pushed if you deviate from `:latest` in your scripts).
+
+### Suggestions for Enhancing Workflow:
+
+*   **CI/CD Pipeline:**
+    *   Implement a Continuous Integration/Continuous Deployment (CI/CD) pipeline using tools like GitHub Actions, GitLab CI/CD, or Google Cloud Build.
+    *   **Automation:** The pipeline could automate:
+        1.  Running linters and tests on each push/merge.
+        2.  Building the Expo web application.
+        3.  Building and tagging the Docker image.
+        4.  Pushing the image to Google Container Registry.
+        5.  Deploying the new image to Cloud Run (potentially to a staging environment first, then production).
+    *   **Benefits:** Reduces manual effort, ensures consistency, enables faster and more reliable deployments.
+*   **Environment-Specific Configurations:**
+    *   For different environments (development, staging, production), manage configurations (like Supabase URLs if they differ) using separate secrets in Secret Manager and distinct Cloud Run services or revisions.
+*   **Versioned Image Tags:**
+    *   Instead of always using `:latest`, use semantic versioning or commit hashes as image tags in GCR. This allows for easier rollbacks and better tracking of deployed versions. Update the `gcloud run deploy` command to point to the specific versioned tag.
+*   **Infrastructure as Code (IaC):**
+    *   Consider using tools like Terraform to manage your Google Cloud resources (Cloud Run service, Secret Manager secrets, IAM permissions) declaratively.
+
+---
+
 ## Task Requirements
 
 B.  Design and develop a fully functional full stack (mobile or web) software product that addresses your identified business problem or organizational need. Include each of the following attributes, as they are the minimum required elements for the application:

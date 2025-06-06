@@ -25,7 +25,6 @@ export const ClientListScreen: React.FC<ClientListScreenProps> = ({ navigation }
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterVisible, setFilterVisible] = useState(false);
 
   const { user } = useAuth();
 
@@ -114,18 +113,9 @@ export const ClientListScreen: React.FC<ClientListScreenProps> = ({ navigation }
           placeholder="Search by name or email..."
           value={searchQuery}
           onChangeText={setSearchQuery}
-          placeholderTextColor={colors.gray}
+          placeholderTextColor={colors.textSecondary}
         />
-        <TouchableOpacity onPress={() => setFilterVisible(!filterVisible)} style={styles.iconButton}>
-            <Ionicons name="filter-outline" size={24} color={colors.primary} />
-        </TouchableOpacity>
       </View>
-
-      {filterVisible && (
-        <View style={styles.filterPanel}>
-            <Text style={styles.filterText}>Client filter options will be here.</Text>
-        </View>
-      )}
       
       {error && clients.length > 0 && 
         <View style={styles.inlineErrorView}>
@@ -143,7 +133,7 @@ export const ClientListScreen: React.FC<ClientListScreenProps> = ({ navigation }
         ListEmptyComponent={() => (
           !loading && (
             <View style={styles.emptyStateContainer}>
-              <Ionicons name="people-outline" size={64} color={colors.gray} />
+              <Ionicons name="people-outline" size={64} color={colors.textSecondary} />
               <Text style={styles.emptyStateText}>{searchQuery ? 'No clients match your search.' : 'No clients yet.'}</Text>
               {!searchQuery && <Text style={styles.emptyStateSubText}>Add your first client to get started.</Text>}
               <Button 
@@ -226,7 +216,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   inlineErrorView: {
-    backgroundColor: colors.errorBackground,
+    backgroundColor: colors.surface,
     padding: 10,
     marginHorizontal: 10,
     marginBottom: 10,
@@ -259,7 +249,7 @@ const styles = StyleSheet.create({
   },
   emptyStateSubText: {
     fontSize: 14,
-    color: colors.gray,
+    color: colors.textSecondary,
     marginTop: 8,
     textAlign: 'center',
   },
