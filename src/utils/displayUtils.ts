@@ -15,7 +15,7 @@ function isClient(record: BaseRecord): record is Client {
 
 // Type guard to check if an object is an Expense
 function isExpense(record: BaseRecord): record is Expense {
-  return typeof (record as Expense).name === 'string' && typeof (record as Expense).category === 'string' && typeof (record as Expense).amount === 'number' && 'user_id' in record;
+  return typeof (record as Expense).category === 'string' && typeof (record as Expense).amount === 'number' && 'user_id' in record;
 }
 
 // Type guard to check if an object is an InventoryItem
@@ -64,7 +64,7 @@ export function getDisplayInformation(record: BaseRecord): DisplayDetails {
     if (isExpense(record)) {
       return {
         type: 'Expense',
-        primaryDisplay: record.name,
+        primaryDisplay: record.description || record.name || 'Expense',
         secondaryDisplay: `${record.category} - $${record.amount.toFixed(2)}`
       };
     }

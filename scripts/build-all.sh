@@ -5,7 +5,7 @@
 set -e
 
 # --- Configuration ---
-IMAGE_NAME="d424-capstone-app"
+IMAGE_NAME="featherlitebooks-linux-amd64"
 PROJECT_ID="featherlitebooks"
 GCR_HOSTNAME="us.gcr.io"
 IMAGE_TAG="latest"

@@ -13,4 +13,4 @@ RUN npm install -g serve
 EXPOSE 8080
 
 # Command to run the app
-CMD ["serve", "-s", "dist"] 
+CMD ["serve", "-s", "dist", "-l", "8080"] 

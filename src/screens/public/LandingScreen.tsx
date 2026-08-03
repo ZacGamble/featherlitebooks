@@ -35,7 +35,7 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({ navigation }) => {
           <View style={styles.featureBlock}>
             <Text style={styles.featureTitle}>Accessible Anywhere</Text>
             <Text style={styles.featureText}>
-              Whether you're on your desktop or on the go, FeatherLiteBooks keeps your business data synced and accessible. 
+              Whether you're on your desktop or on the go, FeatherLiteBooks keeps your business data synced and accessible.
             </Text>
           </View>
         </View>
@@ -48,7 +48,7 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({ navigation }) => {
       </ScrollView>
       <View style={styles.footer}>
         <Text style={styles.footerText}>
-          Made for WGU BSSWE Capstone, all source code private.
+          © 2024 FeatherLiteBooks. All rights reserved.
         </Text>
       </View>
     </ScreenContainer>

@@ -3,8 +3,7 @@
 **A lightweight ERP and accounting web application for small business owners to manage inventory, sales (invoicing), expenses, and basic accounting. FeatherLiteBooks aims to replace spreadsheets and complex enterprise software by offering clarity and efficiency.**
 
 Developed by: Zachary R. Gamble
-Repository: GitLab (https://gitlab.com/wgu-gitlab-environment/student-repos/zgambl1/d424-software-engineering-capstone/-/tree/working?ref_type=heads)
-
+Repository: Github (https://github.com/ZacGamble/featherlitebooks)
 ---
 
 ## Table of Contents

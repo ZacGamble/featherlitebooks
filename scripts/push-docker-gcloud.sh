@@ -1,7 +1,7 @@
 #!/bin/bash
 # Script to tag the Docker image and push it to Google Container Registry (GCR)
 
-IMAGE_NAME="d424-capstone-app"
+IMAGE_NAME="featherlitebooks-linux-amd64"
 PROJECT_ID="featherlitebooks"
 GCR_HOSTNAME="us.gcr.io"
 IMAGE_TAG="latest"

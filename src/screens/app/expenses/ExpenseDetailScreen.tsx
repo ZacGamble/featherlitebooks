@@ -93,7 +93,8 @@ export const ExpenseDetailScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const handleDelete = async () => {
     if (!expense) return;
-    const confirmed = window.confirm(`Are you sure you want to delete the expense: ${expense.name}? This action cannot be undone.`);
+    const title = expense.description || expense.name || 'Expense';
+    const confirmed = window.confirm(`Are you sure you want to delete the expense: ${title}? This action cannot be undone.`);
     if (confirmed) {
       setActionLoading(true);
       try {
@@ -102,7 +103,7 @@ export const ExpenseDetailScreen: React.FC<Props> = ({ navigation, route }) => {
           setError(deleteError.message);
           window.alert(`Delete Error: ${deleteError.message}`);
         } else {
-          window.alert(`Expense "${expense.name}" deleted successfully.`);
+          window.alert(`Expense "${title}" deleted successfully.`);
           navigation.goBack();
         }
       } catch (e) {
@@ -145,6 +146,8 @@ export const ExpenseDetailScreen: React.FC<Props> = ({ navigation, route }) => {
     );
   }
 
+  const dateStr = expense.expense_date || expense.date || new Date().toISOString();
+
   return (
     <ScreenContainer scrollable>
       <View style={styles.topBarContainer}>
@@ -157,7 +160,7 @@ export const ExpenseDetailScreen: React.FC<Props> = ({ navigation, route }) => {
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.headerSection}>
           <Ionicons name="receipt-outline" size={60} color={colors.primary} />
-          <Text style={styles.expenseName}>{expense.name}</Text>
+          <Text style={styles.expenseName}>{expense.description || expense.name}</Text>
         </View>
 
         {error && <Text style={[styles.messageText, styles.inlineError]}>{error}</Text>}
@@ -166,8 +169,8 @@ export const ExpenseDetailScreen: React.FC<Props> = ({ navigation, route }) => {
           <Text style={styles.cardTitle}>Details</Text>
           <DetailDisplayItem label="Amount" value={expense.amount} iconName="cash-outline" isCurrency />
           <DetailDisplayItem label="Category" value={expense.category} iconName="pricetag-outline" />
-          <DetailDisplayItem label="Date" value={format(parseISO(expense.expense_date), 'MMM dd, yyyy')} iconName="calendar-outline" />
-          {expense.vendor && <DetailDisplayItem label="Vendor" value={expense.vendor} iconName="storefront-outline" />}
+          <DetailDisplayItem label="Date" value={format(parseISO(dateStr), 'MMM dd, yyyy')} iconName="calendar-outline" />
+          {(expense.vendor_name || expense.vendor) && <DetailDisplayItem label="Vendor" value={expense.vendor_name || expense.vendor} iconName="storefront-outline" />}
           {expense.receipt_url && <DetailDisplayItem label="Receipt" value={expense.receipt_url} iconName="attach-outline" isLink />}
         </View>
         

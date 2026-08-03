@@ -60,24 +60,31 @@ export const ExpenseListScreen: React.FC<Props> = ({ navigation }) => {
     fetchExpenses();
   }, [fetchExpenses]);
 
-  const filteredExpenses = expenses.filter(
-    (expense) =>
-      expense.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      expense.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (expense.vendor && expense.vendor.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (expense.description && expense.description.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const filteredExpenses = expenses.filter((expense) => {
+    const desc = expense.description || expense.name || '';
+    const vendor = expense.vendor_name || expense.vendor || '';
+    const term = searchTerm.toLowerCase();
+    return (
+      desc.toLowerCase().includes(term) ||
+      expense.category.toLowerCase().includes(term) ||
+      vendor.toLowerCase().includes(term)
+    );
+  });
 
-  const renderItem = ({ item }: { item: Expense }) => (
-    <ListItem
-      title={item.name}
-      subtitle={`${item.category} - ${format(parseISO(item.expense_date), 'MMM dd, yyyy')}`}
-      onPress={() => navigation.navigate(ROUTES.EXPENSE_DETAIL, { expenseId: item.id })}
-      leftIconName="receipt-outline"
-    >
-      <Text style={styles.amountText}>${item.amount.toFixed(2)}</Text>
-    </ListItem>
-  );
+  const renderItem = ({ item }: { item: Expense }) => {
+    const title = item.description || item.name || 'Expense';
+    const dateStr = item.expense_date || item.date || new Date().toISOString();
+    return (
+      <ListItem
+        title={title}
+        subtitle={`${item.category} - ${format(parseISO(dateStr), 'MMM dd, yyyy')}`}
+        onPress={() => navigation.navigate(ROUTES.EXPENSE_DETAIL, { expenseId: item.id })}
+        leftIconName="receipt-outline"
+      >
+        <Text style={styles.amountText}>${item.amount.toFixed(2)}</Text>
+      </ListItem>
+    );
+  };
 
   if (loading && !refreshing) {
     return (

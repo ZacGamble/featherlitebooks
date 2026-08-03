@@ -48,13 +48,13 @@ export const ExpenseFormScreen: React.FC<Props> = ({ navigation, route }) => {
         Alert.alert('Error', `Failed to fetch expense details: ${error.message}`);
       } else if (data) {
         setFormState({
-          name: data.name || '',
+          name: data.name || data.description || '',
           category: data.category || '',
           amountString: data.amount?.toString() || '0',
-          expense_date: (data.expense_date && typeof data.expense_date === 'string') 
-                          ? data.expense_date.split('T')[0] 
+          expense_date: (data.expense_date || data.date) 
+                          ? (data.expense_date || data.date)!.split('T')[0] 
                           : defaultExpenseDate,
-          vendor: data.vendor || '',
+          vendor: data.vendor_name || data.vendor || '',
           description: data.description || '',
           receipt_url: data.receipt_url || ''
         });
@@ -82,8 +82,8 @@ export const ExpenseFormScreen: React.FC<Props> = ({ navigation, route }) => {
   };
 
   const validateForm = (): boolean => {
-    if (!formState.name?.trim()) {
-      setFormError('Expense name is required.');
+    if (!formState.name?.trim() && !formState.description?.trim()) {
+      setFormError('Expense name or description is required.');
       return false;
     }
     if (!formState.category?.trim()) {
@@ -120,12 +120,11 @@ export const ExpenseFormScreen: React.FC<Props> = ({ navigation, route }) => {
 
     const expenseDataToSubmit = {
       user_id: user.id,
-      name: formState.name!,
       category: formState.category!,
       amount: amountValue,
       expense_date: formState.expense_date!,
-      vendor: formState.vendor || null,
-      description: formState.description || null,
+      description: formState.description || formState.name || '',
+      vendor_name: formState.vendor || null,
       receipt_url: formState.receipt_url || null,
     };
 

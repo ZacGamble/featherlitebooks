@@ -3,23 +3,28 @@
  * These types should mirror the structure of your Supabase tables.
  */
 
+export interface BaseRecord {
+  id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UserSpecificRecord extends BaseRecord {
+  user_id: string;
+}
+
 // --- Profile Type ---
-export interface Profile {
-  id: string; // UUID, Primary Key, FK to auth.users.id
+export interface Profile extends BaseRecord {
   username?: string | null; // TEXT, Nullable
   full_name?: string | null; // TEXT, Nullable
   avatar_url?: string | null; // TEXT, Nullable
   website?: string | null; // TEXT, Nullable
   business_name?: string | null; // Added from screenshot
   default_currency?: string | null; // Added from screenshot (corrected name)
-  created_at: string; // TIMESTAMPTZ
-  updated_at: string; // TIMESTAMPTZ
 }
 
 // --- Client Type ---
-export interface Client {
-  id: string; // UUID, Primary Key
-  user_id: string; // UUID, FK to auth.users.id
+export interface Client extends UserSpecificRecord {
   name: string; // TEXT
   email?: string | null; // TEXT, Nullable
   phone?: string | null; // TEXT, Nullable
@@ -29,39 +34,32 @@ export interface Client {
   state_province?: string | null; // TEXT, Nullable
   postal_code?: string | null; // TEXT, Nullable
   country?: string | null; // TEXT, Nullable
-  created_at: string; // TIMESTAMPTZ
-  updated_at: string; // TIMESTAMPTZ
 }
 
 // --- InventoryItem Type ---
-export interface InventoryItem {
-  id: string; // UUID, Primary Key
-  user_id: string; // UUID, FK to auth.users.id
+export interface InventoryItem extends UserSpecificRecord {
   name: string; // TEXT
   sku?: string | null; // TEXT, Nullable
   description?: string | null; // TEXT, Nullable
   quantity_on_hand: number; // INTEGER - RENAMED FROM quantity
   unit_price: number; // NUMERIC
   low_stock_threshold?: number | null; // INTEGER, Nullable
-  created_at: string; // TIMESTAMPTZ
-  updated_at: string; // TIMESTAMPTZ
 }
 
 // --- Expense Type ---
 export type ExpenseStatus = 'pending' | 'approved' | 'reimbursed' | 'rejected';
-export interface Expense {
-  id: string; // UUID, Primary Key
-  user_id: string; // UUID, FK to auth.users.id
-  date: string; // DATE
-  category: string; // TEXT (could be FK to an expense_categories table)
+export interface Expense extends UserSpecificRecord {
+  expense_date: string; // DATE
+  date?: string; // DATE alias
+  category: string; // TEXT
   description: string; // TEXT
+  name?: string; // Optional UI alias
   amount: number; // NUMERIC
   vendor_name?: string | null; // TEXT, Nullable
-  receipt_url?: string | null; // TEXT, Nullable (URL to stored receipt image)
-  payment_method?: string | null; // TEXT, Nullable (e.g., 'Credit Card', 'Cash')
-  status?: ExpenseStatus | null; // TEXT, Nullable (e.g., 'pending', 'approved')
-  created_at: string; // TIMESTAMPTZ
-  updated_at: string; // TIMESTAMPTZ
+  vendor?: string | null; // Optional UI alias
+  receipt_url?: string | null; // TEXT, Nullable
+  payment_method?: string | null; // TEXT, Nullable
+  status?: ExpenseStatus | null; // TEXT, Nullable
 }
 
 // --- Invoice Type ---
